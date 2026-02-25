@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# 1. SETUP ESTETICO (Nero, Viola, Bianco)
+# 1. SETUP ESTETICO
 st.set_page_config(page_title="Zero Skills Cup", layout="wide")
 
 st.markdown("""
@@ -29,7 +29,7 @@ with col_logo:
     try:
         st.image("logo.png", width=150)
     except:
-        st.write("📷 [Logo]")
+        st.write("📷")
 with col_title:
     st.title("ZERO SKILLS CUP")
     st.markdown('<p class="payoff">"Se hai 0 skills, sei nel posto giusto"</p>', unsafe_allow_html=True)
@@ -73,52 +73,4 @@ if st.session_state.phase == "Gironi":
                 c4.write(f"**{m['B']}**")
                 if c5.button("OK", key=f"btn_{idx}"):
                     st.session_state.matches[idx]['S_A'] = s_a
-                    st.session_state.matches[idx]['S_B'] = s_b
-                    st.session_state.matches[idx]['Done'] = True
-                    st.rerun()
-
-    with tab2:
-        stats = {t: {'Punti': 0, 'Set V': 0} for t in st.session_state.teams}
-        for m in st.session_state.matches:
-            if m['Done']:
-                stats[m['A']]['Set V'] += m['S_A']
-                stats[m['B']]['Set V'] += m['S_B']
-                if m['S_A'] > m['S_B']: stats[m['A']]['Punti'] += 3
-                elif m['S_B'] > m['S_A']: stats[m['B']]['Punti'] += 3
-        
-        df = pd.DataFrame.from_dict(stats, orient='index').sort_values(by=['Punti', 'Set V'], ascending=False)
-        st.table(df)
-
-        if all(m['Done'] for m in st.session_state.matches):
-            if st.button("🏆 PASSA AI PLAYOFF (Top 4)"):
-                top_teams = df.index.tolist()[:4]
-                st.session_state.playoffs = [
-                    {"G": "Semifinale 1", "A": top_teams[0], "B": top_teams[3], "Vincitore": None},
-                    {"G": "Semifinale 2", "A": top_teams[1], "B": top_teams[2], "Vincitore": None}
-                ]
-                st.session_state.phase = "Playoff"
-                st.rerun()
-
-# 6. FASE PLAYOFF
-elif st.session_state.phase == "Playoff":
-    st.header("🔥 TABELLONE FINALE")
-    
-
-[Image of a single elimination tournament bracket]
-
-    
-    for idx, p in enumerate(st.session_state.playoffs):
-        with st.expander(f"⚔️ {p['G']}: {p['A']} vs {p['B']}", expanded=True):
-            vincitore = st.selectbox("Chi vince?", ["-", p['A'], p['B']], key=f"win_{idx}")
-            if vincitore != "-":
-                st.session_state.playoffs[idx]['Vincitore'] = vincitore
-
-    if all(p['Vincitore'] is not None for p in st.session_state.playoffs) and len(st.session_state.playoffs) == 2:
-        if st.button("Genera Finale"):
-            st.session_state.playoffs.append({
-                "G": "🏆 FINALISSIMA", 
-                "A": st.session_state.playoffs[0]['Vincitore'], 
-                "B": st.session_state.playoffs[1]['Vincitore'], 
-                "Vincitore": None
-            })
-            st.rerun()
+                    st.session_state.matches[idx]['S
