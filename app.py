@@ -33,18 +33,18 @@ with col_t:
     st.title("ZERO SKILLS CUP")
     st.markdown('<p class="payoff">"Se hai 0 skills, sei nel posto giusto"</p>', unsafe_allow_html=True)
 
-# 4. SIDEBAR
+# 4. SIDEBAR - AGGIUNTA SQUADRE
 with st.sidebar:
     st.header("👥 Iscrizioni 2x2")
-    t_name = st.text_input("Nome Team (es. I Bomber)")
-    p1 = st.text_input("Giocatore 1")
-    p2 = st.text_input("Giocatore 2")
+    t_name = st.text_input("Nome Team", key="t_input")
+    p1 = st.text_input("Giocatore 1", key="p1_input")
+    p2 = st.text_input("Giocatore 2", key="p2_input")
     
     if st.button("Aggiungi Team"):
         if t_name and p1 and p2:
-            full_name = f"{t_name} ({p1}/{p2})"
-            if full_name not in st.session_state.teams:
-                st.session_state.teams.append(full_name)
-                st.rerun()
-    
-    st
+            full_entry = f"{t_name} ({p1} - {p2})"
+            if full_entry not in st.session_state.teams:
+                st.session_state.teams.append(full_entry)
+                st.success(f"Aggiunto: {t_name}")
+            else:
+                st.error("Team già isc
