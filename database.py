@@ -14,6 +14,14 @@ def init_session():
     if 'matches' not in st.session_state: st.session_state['matches'] = []
     if 'playoffs' not in st.session_state: st.session_state['playoffs'] = []
     if 'phase' not in st.session_state: st.session_state['phase'] = "Setup"
+        # Aggiungere circa al rigo 16
+    if 'settings' not in st.session_state:
+        st.session_state['settings'] = {
+            "punti_set": 21,
+            "punti_tiebreak": 15,
+            "formato_torneo": "Gironi + Playoff",
+            "vantaggio_obbligatorio": True
+        }
     if 'match_type' not in st.session_state: st.session_state['match_type'] = "Best of 3"
 
 def aggiorna_database_storico(nome_atleta, pf, ps, sv, sp, vittorie, piazzamento):
