@@ -40,7 +40,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. INIZIALIZZAZIONE DATABASE (Persistenza nella sessione)
+# 2. INIZIALIZZAZIONE DATABASE
 if 'db_teams' not in st.session_state: st.session_state['db_teams'] = []
 if 'db_atleti' not in st.session_state: st.session_state['db_atleti'] = []
 if 'ranking_atleti' not in st.session_state: st.session_state['ranking_atleti'] = {} 
@@ -53,29 +53,22 @@ if 'playoffs' not in st.session_state: st.session_state['playoffs'] = []
 if 'phase' not in st.session_state: st.session_state['phase'] = "Setup"
 if 'min_teams' not in st.session_state: st.session_state['min_teams'] = 4
 
-# 3. PANNELLO SINISTRO (RANKING LIVE & EXPORT)
+# 3. PANNELLO SINISTRO (RANKING LIVE)
 with st.sidebar:
     st.title("📊 LIVE RANKING")
-    
-    if not st.session_state['ranking_atleti']:
-        st.info("Nessun atleta nel ranking.")
-    else:
-        # Ordina e visualizza Ranking Live
+    if st.session_state['ranking_atleti']:
         sorted_rank = sorted(st.session_state['ranking_atleti'].items(), key=lambda x: x[1], reverse=True)
         for i, (name, pts) in enumerate(sorted_rank):
             medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else "🏐"
             st.markdown(f"<div class='ranking-row'><span>{medal} {name}</span><span style='color:#00ff00'>{pts}</span></div>", unsafe_allow_html=True)
         
-        st.write("---")
-        if st.button("🖼️ EXPORT RANKING GRAFICO"):
-            rows = "".join([f"<tr><td style='padding:10px; font-size:24px;'>{'🥇' if i==0 else '🥈' if i==1 else '🥉' if i==2 else '🏐'} {n}</td><td style='padding:10px; font-size:24px; font-weight:bold;'>{p} PT</td></tr>" for i, (n, p) in enumerate(sorted_rank)])
-            html_ranking = f"<div style='background: linear-gradient(135deg, #4B0082, #9370DB); padding: 40px; border-radius: 20px; color: white; text-align: center; font-family: sans-serif;'><h1 style='font-size: 40px;'>🏆 ZERO SKILLS RANKING</h1><table style='width: 100%; margin-top: 20px;'>{rows}</table></div>"
-            st.components.v1.html(html_ranking, height=500, scrolling=True)
+        if st.button("🖼️ EXPORT RANKING"):
+            rows = "".join([f"<tr><td style='padding:10px;'>{n}</td><td>{p} PT</td></tr>" for n, p in sorted_rank])
+            st.components.v1.html(f"<div style='background:#4B0082; padding:20px; color:white; font-family:sans-serif;'><h2>🏆 RANKING</h2><table style='width:100%'>{rows}</table></div>", height=400)
 
     st.write("---")
     with st.expander("🏅 Albo d'Oro"):
         for win in st.session_state['albo_oro']: st.write(win)
-
     if st.button("🗑️ RESET TOTALE"):
         st.session_state.clear()
         st.rerun()
@@ -86,58 +79,63 @@ if st.session_state['phase'] == "Setup":
     
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Iscrizione Team")
+        st.subheader("Iscrizione Rapida")
         with st.form("iscrizione", clear_on_submit=True):
-            # Selezione o Inserimento Team
-            t_name_opt = st.selectbox("Seleziona Team esistente", ["-"] + sorted(list(set(st.session_state['db_teams']))))
-            t_name_new = st.text_input("Oppure nuovo Nome Squadra")
-            t_name = t_name_new if t_name_new else t_name_opt
-            
-            # Selezione o Inserimento Atleti
-            st.write("**Atleta 1**")
-            p1_opt = st.selectbox("Cerca nel DB", ["-"] + sorted(st.session_state['db_atleti']), key="p1_sel")
-            p1_new = st.text_input("Oppure Nome e Cognome nuovo Atleta 1")
-            p1 = p1_new if p1_new else p1_opt
+            # Caselle uniche con suggerimenti (selectbox editabile simulata tramite text_input + selectbox)
+            t_name = st.selectbox("Nome Squadra (Seleziona o scrivi sotto)", ["-"] + sorted(st.session_state['db_teams']))
+            t_name_new = st.text_input("Nuovo Nome Squadra (se non presente sopra)")
+            team_final = t_name_new if t_name_new else t_name
 
-            st.write("**Atleta 2**")
-            p2_opt = st.selectbox("Cerca nel DB", ["-"] + sorted(st.session_state['db_atleti']), key="p2_sel")
-            p2_new = st.text_input("Oppure Nome e Cognome nuovo Atleta 2")
-            p2 = p2_new if p2_new else p2_opt
+            p1_sel = st.selectbox("Atleta 1", ["-"] + sorted(st.session_state['db_atleti']))
+            p1_new = st.text_input("Nuovo Atleta 1 (se non presente sopra)")
+            p1_final = p1_new if p1_new else p1_sel
+
+            p2_sel = st.selectbox("Atleta 2", ["-"] + sorted(st.session_state['db_atleti']))
+            p2_new = st.text_input("Nuovo Atleta 2 (se non presente sopra)")
+            p2_final = p2_new if p2_new else p2_sel
 
             paid = st.checkbox("Quota pagata")
             
-            if st.form_submit_button("Conferma Iscrizione"):
-                if t_name != "-" and p1 != "-" and p2 != "-":
-                    st.session_state['teams'].append({"full": f"{t_name} ({p1}/{p2})", "name": t_name, "p1": p1, "p2": p2, "paid": paid})
-                    # Aggiornamento Database
-                    if t_name not in st.session_state['db_teams']: st.session_state['db_teams'].append(t_name)
-                    for p in [p1, p2]:
+            if st.form_submit_button("CONFERMA ISCRIZIONE"):
+                if team_final != "-" and p1_final != "-" and p2_final != "-":
+                    # Salvataggio Team
+                    st.session_state['teams'].append({
+                        "full": f"{team_final} ({p1_final}/{p2_final})",
+                        "name": team_final, "p1": p1_final, "p2": p2_final, "paid": paid
+                    })
+                    # Aggiornamento Database globale
+                    if team_final not in st.session_state['db_teams']: st.session_state['db_teams'].append(team_final)
+                    for p in [p1_final, p2_final]:
                         if p not in st.session_state['db_atleti']: 
                             st.session_state['db_atleti'].append(p)
+                        if p not in st.session_state['ranking_atleti']:
                             st.session_state['ranking_atleti'][p] = 0
                     play_sound("click")
                     st.rerun()
+                else:
+                    st.error("Compila tutti i campi!")
 
     with col2:
-        st.subheader("Check-in")
+        st.subheader("Lista Check-in")
         for t in st.session_state['teams']:
             status = "paid" if t['paid'] else "not-paid"
             st.markdown(f"<div><span class='status-dot {status}'></span> {t['full']}</div>", unsafe_allow_html=True)
         
         st.write("---")
-        st.session_state['min_teams'] = st.number_input("Minimo per iniziare:", 4, 32, value=st.session_state['min_teams'])
+        st.session_state['min_teams'] = st.number_input("Minimo squadre per Start:", 4, 32, value=st.session_state['min_teams'])
         if len(st.session_state['teams']) >= st.session_state['min_teams']:
-            if st.button("🚀 AVVIA TORNEO"):
+            if st.button("🚀 AVVIA ZERO SKILLS CUP"):
                 st.session_state['phase'] = "Gironi"
                 lt = st.session_state['teams']
                 for i in range(len(lt)):
                     for j in range(i+1, len(lt)):
                         st.session_state['matches'].append({"A": lt[i], "B": lt[j], "SA": 0, "SB": 0, "Fatto": False})
-                play_sound("whistle"); st.rerun()
+                play_sound("whistle")
+                st.rerun()
 
-# 5. FASE GIRONI
+# 5. FASE GIRONI (Rimane come confermata)
 elif st.session_state['phase'] == "Gironi":
-    st.header("🎾 GIRONI QUALIFICAZIONE")
+    st.header("🎾 GIRONI")
     t1, t2 = st.tabs(["Calendario", "Classifica Live"])
     with t1:
         for idx, m in enumerate(st.session_state['matches']):
@@ -161,15 +159,14 @@ elif st.session_state['phase'] == "Gironi":
             if st.button("🏆 PASSA AI PLAYOFF"):
                 top = df["index"].tolist()[:4]
                 top_teams = [next(t for t in st.session_state['teams'] if t['full'] == name) for name in top]
-                st.session_state['playoffs'] = [
-                    {"N": "Semi 1", "A": top_teams[0], "B": top_teams[3], "V": None, "L": None},
-                    {"N": "Semi 2", "A": top_teams[1], "B": top_teams[2], "V": None, "L": None}
-                ]
+                st.session_state['playoffs'] = [{"N": "Semi 1", "A": top_teams[0], "B": top_teams[3], "V": None, "L": None},
+                                                {"N": "Semi 2", "A": top_teams[1], "B": top_teams[2], "V": None, "L": None}]
                 st.session_state['phase'] = "Playoff"; st.rerun()
 
-# 6. FASE PLAYOFF
+# 6. PLAYOFF (Rimane come confermata)
 elif st.session_state['phase'] == "Playoff":
-    st.header("🔥 FINAL FOUR")
+    st.header("🔥 FASE FINALE")
+    
     c1, c2 = st.columns(2)
     for i in range(2):
         with [c1, c2][i]:
@@ -179,18 +176,15 @@ elif st.session_state['phase'] == "Playoff":
             if win != "-":
                 st.session_state['playoffs'][i]['V'] = p['A'] if win == "Team A" else p['B']
                 st.session_state['playoffs'][i]['L'] = p['B'] if win == "Team A" else p['A']
-
     if all(p['V'] for p in st.session_state['playoffs'][:2]) and len(st.session_state['playoffs']) == 2:
         if st.button("✨ GENERA FINALI"):
             st.session_state['playoffs'].append({"N": "FINALE 1°", "A": st.session_state['playoffs'][0]['V'], "B": st.session_state['playoffs'][1]['V'], "V": None})
             st.session_state['playoffs'].append({"N": "FINALE 3°", "A": st.session_state['playoffs'][0]['L'], "B": st.session_state['playoffs'][1]['L'], "V": None})
             st.rerun()
-
     if len(st.session_state['playoffs']) > 2:
         f1 = st.session_state['playoffs'][2]
         st.markdown(f"<div class='bracket-box' style='border-color:gold;'>ORO: {f1['A']['name']} vs {f1['B']['name']}</div>", unsafe_allow_html=True)
         winner_choice = st.selectbox("CAMPIONE:", ["-", f1['A']['name'], f1['B']['name']], key="final")
-        
         if winner_choice != "-" and st.button("🏁 CHIUDI E ASSEGNA PUNTI"):
             vincitore = f1['A'] if winner_choice == f1['A']['name'] else f1['B']
             pts = len(st.session_state['teams']) * 10
