@@ -56,3 +56,14 @@ def display_sidebar():
         if st.button("🗑️ RESET SESSIONE"):
             st.session_state.clear()
             st.rerun()
+
+# All'interno di display_sidebar(), nella sezione Profili:
+default_atleta = "-"
+if 'search_atleta' in st.session_state:
+    default_atleta = st.session_state.search_atleta
+    # Rimuoviamo il parametro dopo l'uso per permettere altre ricerche
+    del st.session_state.search_atleta 
+
+# Aggiorna lo st.selectbox esistente con l'indice dinamico:
+indice = (["-"] + st.session_state['db_atleti']).index(default_atleta)
+scelta = st.selectbox("Seleziona Atleta", ["-"] + st.session_state['db_atleti'], index=indice)
