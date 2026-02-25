@@ -16,6 +16,15 @@ def load_styles():
         }
         .stat-item-box { background: #111827; padding: 15px; border-radius: 10px; border: 1px solid #374151; text-align: center; }
         </style>
+        # Aggiungere circa al rigo 18 (dentro lo stile CSS)
+        .match-card-broadcast {
+            background: #1a1c23; border-radius: 8px; border-top: 4px solid #8b5cf6;
+            margin-bottom: 20px; padding: 0px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .broadcast-row { display: flex; align-items: center; padding: 10px; color: white; }
+        .row-red { background: linear-gradient(90deg, #ff4b4b 0%, #1a1c23 80%); }
+        .row-blue { background: linear-gradient(90deg, #0072ff 0%, #1a1c23 80%); }
+        .broadcast-score-box { background: rgba(0,0,0,0.4); border-radius: 5px; width: 60px; text-align: center; font-weight: bold; font-size: 1.2rem; }
     """, unsafe_allow_html=True)
 
 def display_sidebar():
