@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 
-# 1. CONFIGURAZIONE PAGINA
+# 1. SETUP PAGINA
 st.set_page_config(page_title="Zero Skills Cup", layout="wide")
 
+# CSS per tema Dark/Viola
 st.markdown("""
     <style>
     .stApp { background-color: #000000; color: #ffffff; }
@@ -23,7 +24,7 @@ if 'phase' not in st.session_state: st.session_state['phase'] = "Setup"
 st.title("ZERO SKILLS CUP")
 st.write("Se hai 0 skills, sei nel posto giusto")
 
-# 4. SIDEBAR - GESTIONE TEAM CON FORM (Previene errori di invio)
+# 4. SIDEBAR - GESTIONE TEAM
 with st.sidebar:
     st.header("Iscrizioni")
     
@@ -112,13 +113,8 @@ if st.session_state['phase'] == "Gironi":
 
 # 6. FASE PLAYOFF
 elif st.session_state['phase'] == "Playoff":
-    st.header("Tabellone Finale")
+    st.header("🔥 TABELLONE FINALE")
     
-    
-
-[Image of a single elimination tournament bracket]
-
-
     for i in range(min(2, len(st.session_state['playoffs']))):
         p = st.session_state['playoffs'][i]
         st.subheader(p['N'])
