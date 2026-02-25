@@ -53,3 +53,7 @@ def assegna_punti_finali(teams):
         for atleta in [team['p1'], team['p2']]:
             if atleta != "N/A":
                 st.session_state['ranking_atleti'][atleta] = st.session_state['ranking_atleti'].get(atleta, 0) + punti
+
+def get_atleta_full_career(nome):
+    """Restituisce il dizionario completo per visualizzazioni avanzate."""
+    return st.session_state['atleti_stats'].get(nome, None)
