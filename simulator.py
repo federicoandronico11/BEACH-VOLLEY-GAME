@@ -9,7 +9,8 @@ def generate_pro_score(limit):
     return a, b
 
 def simulate_random_tournament():
-    target = st.session_state['matches'] if st.session_state['phase'] == "Gironi" else st.session_state['playoffs']
+    phase = st.session_state['phase']
+    target = st.session_state['matches'] if phase == "Gironi" else st.session_state['playoffs']
     limit = st.session_state['settings']['punti_set']
     tie_limit = st.session_state['settings']['punti_tiebreak']
 
@@ -22,7 +23,9 @@ def simulate_random_tournament():
             m['S1A'], m['S1B'] = generate_pro_score(limit)
             if st.session_state['match_type'] == "Best of 3":
                 m['S2A'], m['S2B'] = generate_pro_score(limit)
-                if (m['S1A'] > m['S1B'] and m['S2A'] < m['S2B']) or (m['S1A'] < m['S1B'] and m['S2A'] > m['S2B']):
+                s_a = (1 if m['S1A'] > m['S1B'] else 0) + (1 if m['S2A'] > m['S2B'] else 0)
+                s_b = (1 if m['S1B'] > m['S1A'] else 0) + (1 if m['S2B'] > m['S2A'] else 0)
+                if s_a == 1 and s_b == 1:
                     m['S3A'], m['S3B'] = generate_pro_score(tie_limit)
             m['Fatto'] = True
-    st.rerun()
+    st.toast("🎲 Simulazione completata!")
