@@ -28,21 +28,18 @@ if st.session_state['phase'] == "Setup":
     with col1:
         st.subheader("📝 Iscrizione Rapida")
         with st.form("form_iscrizione", clear_on_submit=True):
-            # RIGA SQUADRA
             st.write("**Squadra**")
             ct1, ct2 = st.columns(2)
             t_name = ct1.selectbox("Esistente", ["-"] + st.session_state['db_teams'], label_visibility="collapsed")
             t_new = ct2.text_input("Nuova", placeholder="Nome Squadra", label_visibility="collapsed")
             team_final = t_new if t_new != "" else t_name
 
-            # RIGA ATLETA 1
             st.write("**Atleta 1**")
             ca1, ca2 = st.columns(2)
             p1_sel = ca1.selectbox("P1_E", ["-"] + st.session_state['db_atleti'], label_visibility="collapsed")
             p1_new = ca2.text_input("P1_N", placeholder="Nome e Cognome", label_visibility="collapsed")
             p1_final = p1_new if p1_new != "" else p1_sel
 
-            # RIGA ATLETA 2
             st.write("**Atleta 2**")
             cb1, cb2 = st.columns(2)
             p2_sel = cb1.selectbox("P2_E", ["-"] + st.session_state['db_atleti'], label_visibility="collapsed")
@@ -50,7 +47,6 @@ if st.session_state['phase'] == "Setup":
             p2_final = p2_new if p2_new != "" else p2_sel
 
             paid = st.checkbox("Quota versata (€)")
-            
             submit = st.form_submit_button("CONFERMA ISCRIZIONE", use_container_width=True)
             
             if submit:
@@ -59,7 +55,6 @@ if st.session_state['phase'] == "Setup":
                         "full": f"{team_final} ({p1_final}/{p2_final})", 
                         "name": team_final, "p1": p1_final, "p2": p2_final, "paid": paid
                     })
-                    # Aggiornamento Database Persistente
                     if team_final not in st.session_state['db_teams']: st.session_state['db_teams'].append(team_final)
                     for p in [p1_final, p2_final]:
                         if p not in st.session_state['db_atleti']: st.session_state['db_atleti'].append(p)
@@ -122,7 +117,13 @@ elif st.session_state['phase'] == "Gironi":
 
 elif st.session_state['phase'] == "Playoff":
     st.header("🏁 FINALI")
-        c1, c2 = st.columns(2)
+    
+    
+
+[Image of single elimination tournament bracket]
+
+
+    c1, c2 = st.columns(2)
     for i in range(2):
         with [c1, c2][i]:
             p = st.session_state['playoffs'][i]
