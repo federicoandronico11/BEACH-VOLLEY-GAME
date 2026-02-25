@@ -67,3 +67,10 @@ if 'search_atleta' in st.session_state:
 # Aggiorna lo st.selectbox esistente con l'indice dinamico:
 indice = (["-"] + st.session_state['db_atleti']).index(default_atleta)
 scelta = st.selectbox("Seleziona Atleta", ["-"] + st.session_state['db_atleti'], index=indice)
+
+/* Da aggiungere dentro il blocco <style> di load_styles() */
+div.stButton > button:first-child[aria-label="🎲 SIMULA RISULTATI MANCANTI"] {
+    background-color: #3e2723;
+    border: 1px solid #ffab40;
+    color: #ffab40;
+}
