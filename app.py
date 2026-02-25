@@ -3,12 +3,13 @@ import pandas as pd
 from database import init_session, assegna_punti_finali, registra_incasso_torneo, aggiorna_database_storico
 from ui_components import load_styles, display_sidebar
 
+# --- 1. CONFIGURAZIONE ---
 st.set_page_config(page_title="Zero Skills Cup Pro", layout="wide")
 init_session()
 load_styles()
 display_sidebar()
 
-# --- FASE SETUP ---
+# --- 2. FASE SETUP ---
 if st.session_state['phase'] == "Setup":
     st.title("🏐 ZERO SKILLS CUP")
     st.markdown("<div class='mega-counter'><h1>Gara di Beach Volley</h1>Gestione Iscrizioni e Cassa</div>", unsafe_allow_html=True)
@@ -21,10 +22,10 @@ if st.session_state['phase'] == "Setup":
                 usa_n = st.toggle("Nome squadra custom")
                 nome_c = st.text_input("Nome") if usa_n else ""
                 a1 = st.selectbox("Atleta 1", ["-"] + st.session_state['db_atleti'])
-                a1_n = st.text_input("Nuovo 1")
+                a1_n = st.text_input("Nuovo Atleta 1")
                 at1 = a1_n if a1_n else a1
                 a2 = st.selectbox("Atleta 2", ["-"] + st.session_state['db_atleti'])
-                a2_n = st.text_input("Nuovo 2")
+                a2_n = st.text_input("Nuovo Atleta 2")
                 at2 = a2_n if a2_n else a2
                 q = st.number_input("Quota €", 10)
                 p = st.checkbox("Pagato")
@@ -40,14 +41,15 @@ if st.session_state['phase'] == "Setup":
                 st.write(f"{'✅' if team['pagato'] else '❌'} {team['full']}")
             if len(st.session_state['teams']) >= 4 and st.button("🚀 AVVIA TORNEO"):
                 lt = st.session_state['teams']
-                st.session_state['matches'] = [{"A": lt[i], "B": lt[j], "S1A":0, "S1B":0, "S2A":0, "S2B":0, "S3A":0, "S3B":0, "Fatto": False} for i in range(len(lt)) for j in range(i+1, len(lt))]
+                st.session_state['matches'] = [{"A": lt[i], "B": lt[j], "S1A":0, "S1B":0, "S2A":0, "S2B":0, "Fatto": False} for i in range(len(lt)) for j in range(i+1, len(lt))]
                 st.session_state['phase'] = "Gironi"; st.rerun()
+    with t2:
+        if st.session_state['storico_incassi']: st.table(pd.DataFrame(st.session_state['storico_incassi']))
 
-# --- FASE GIRONI ---
+# --- 3. FASE GIRONI ---
 elif st.session_state['phase'] == "Gironi":
     st.title("🎾 GIRONI")
     
-    # Visualizzazione moderna dei match
     for i, m in enumerate(st.session_state['matches']):
         with st.expander(f"Match {i+1}: {m['A']['name']} vs {m['B']['name']}"):
             col_a, col_b = st.columns(2)
@@ -57,7 +59,6 @@ elif st.session_state['phase'] == "Gironi":
             m['S2B'] = col_b.number_input(f"S2 {m['B']['name']}", 0, 30, m['S2B'], key=f"2b{i}")
             m['Fatto'] = st.checkbox("Finalizza", m['Fatto'], key=f"f{i}")
 
-    # Calcolo Classifica
     st.write("---")
     stats = {t['full']: {"P":0, "SV":0, "SP":0, "PF":0, "PS":0, "obj":t} for t in st.session_state['teams']}
     for m in st.session_state['matches']:
@@ -83,7 +84,7 @@ elif st.session_state['phase'] == "Gironi":
         ]
         st.session_state['phase'] = "Playoff"; st.rerun()
 
-# --- FASE PLAYOFF ---
+# --- 4. FASE PLAYOFF ---
 elif st.session_state['phase'] == "Playoff":
     st.title("🔥 PLAYOFF")
     
@@ -104,7 +105,6 @@ elif st.session_state['phase'] == "Playoff":
 
     if len(st.session_state['playoffs']) > 2:
         st.write("---")
-        # Inserimento Vincitori Finali
         f1 = st.session_state['playoffs'][2]
         f3 = st.session_state['playoffs'][3]
         
@@ -115,24 +115,20 @@ elif st.session_state['phase'] == "Playoff":
             win3 = st.selectbox("🥉 VINCITORE BRONZO", ["-", f3['A']['name'], f3['B']['name']])
 
         if win1 != "-" and win3 != "-" and st.button("🏁 CHIUDI E SALVA DATI STORICI"):
-            # 1. Registra Cassa
             registra_incasso_torneo(st.session_state['teams'])
-            
-            # 2. Assegna Punti Ranking Generale
             assegna_punti_finali(st.session_state['teams'])
             
-            # 3. Aggiorna Statistiche Individuali di TUTTI gli atleti
-            # (Qui simuliamo il piazzamento per dare le medaglie)
+            # Identificazione podio per medaglie
             vincitori_oro = f1['A'] if win1 == f1['A']['name'] else f1['B']
             secondi = f1['B'] if win1 == f1['A']['name'] else f1['A']
             terzi = f3['A'] if win3 == f3['A']['name'] else f3['B']
             
-            # Funzione di aiuto per salvare i dati degli atleti
+            # Salvataggio dati atleti
             for t in st.session_state['teams']:
                 piaz = 1 if t['name'] == vincitori_oro['name'] else (2 if t['name'] == secondi['name'] else (3 if t['name'] == terzi['name'] else 0))
-                # Nota: qui potresti integrare i PF/PS reali dai gironi se vuoi la precisione assoluta
+                # Aggiornamento storico
                 aggiorna_database_storico(t['p1'], 0, 0, 0, 0, (1 if piaz==1 else 0), piaz)
                 aggiorna_database_storico(t['p2'], 0, 0, 0, 0, (1 if piaz==1 else 0), piaz)
 
-            st.session_state['albo_oro'].append(f"🏆 {win1} ({datetime.now().strftime('%b %y')})")
+            st.session_state['albo_oro'].append(f"🏆 {win1} ({datetime.now().strftime('%d/%m/%Y')})")
             st.session_state['teams'] = []; st.session_state['phase'] = "Setup"; st.balloons(); st.rerun()
