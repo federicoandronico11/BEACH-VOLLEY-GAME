@@ -209,3 +209,14 @@ elif st.session_state['phase'] == "Vittoria":
     st.balloons()
     if st.button("TORNA AL MENU PRINCIPALE"):
         st.session_state['teams'] = []; st.session_state['phase'] = "Setup"; st.rerun()
+
+import ranking_page # Importa il nuovo file
+
+# Sotto la gestione della sidebar (display_sidebar())
+with st.sidebar:
+    st.write("---")
+    menu = st.radio("SPOSTATI IN:", ["Torneo Live", "Hall of Fame 🏆"])
+
+if menu == "Hall of Fame 🏆":
+    ranking_page.show_podium()
+    st.stop() # Interrompe l'app qui per mostrare solo la classifica
