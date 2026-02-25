@@ -10,6 +10,7 @@ st.markdown("""
     h1, h2, h3 { color: #9370DB !important; font-family: 'Arial Black', sans-serif; }
     .stButton>button { background-color: #4B0082; color: white; border-radius: 8px; width: 100%; }
     [data-testid="stSidebar"] { background-color: #111111; border-right: 1px solid #4B0082; }
+    .stTable { background-color: #1a1a1a; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -84,10 +85,11 @@ if st.session_state['phase'] == "Gironi":
         for idx, m in enumerate(st.session_state['matches']):
             if not m['Fatto']:
                 with st.expander(f"Match: {m['A']} vs {m['B']}"):
-                    c1, c2 = st.columns(2)
-                    with c1: st.write(f"Punti {m['A']}")
-                    with c2: st.write(f"Punti {m['B']}")
-                    ris_finale = st.selectbox("Risultato Set", ["2-0", "2-1", "1-2", "0-2"], key=f"sel{idx}")
+                    c1, c2, c3 = st.columns(3)
+                    with c1: st.write("Punti Set")
+                    with c2: st.number_input(f"A", 0, 30, key=f"s1a{idx}")
+                    with c3: st.number_input(f"B", 0, 30, key=f"s1b{idx}")
+                    ris_finale = st.selectbox("Risultato Finale Set", ["2-0", "2-1", "1-2", "0-2"], key=f"sel{idx}")
                     if st.button("Salva Risultato", key=f"btn{idx}"):
                         v_a, v_b = map(int, ris_finale.split("-"))
                         st.session_state['matches'][idx].update({"SA": v_a, "SB": v_b, "Fatto": True})
