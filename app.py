@@ -73,6 +73,12 @@ def input_match_pro(m, key_prefix):
 # --- 4. FASE SETUP ---
 if st.session_state['phase'] == "Setup":
     st.title("🏐 ZERO SKILLS CUP - DASHBOARD")
+    # Aggiungere circa al rigo 75
+    with st.expander("⚙️ IMPOSTAZIONI TECNICHE TORNEO"):
+        c1, c2, c3 = st.columns(3)
+        st.session_state['settings']['formato_torneo'] = c1.selectbox("Formato", ["Gironi + Playoff", "Doppia Eliminazione"])
+        st.session_state['settings']['punti_set'] = c2.number_input("Punti Set", 1, 30, 21)
+        st.session_state['settings']['punti_tiebreak'] = c3.number_input("Punti Tiebreak", 1, 21, 15)
     st.markdown("<div class='mega-counter'><h1>Configurazione Torneo</h1></div>", unsafe_allow_html=True)
     
     col_set1, col_set2 = st.columns(2)
