@@ -2,38 +2,36 @@ import streamlit as st
 from datetime import datetime
 
 def init_session():
-    # Database Storici (Permanenti)
     if 'db_atleti' not in st.session_state: st.session_state['db_atleti'] = []
     if 'ranking_atleti' not in st.session_state: st.session_state['ranking_atleti'] = {}
     if 'albo_oro' not in st.session_state: st.session_state['albo_oro'] = []
     if 'storico_incassi' not in st.session_state: st.session_state['storico_incassi'] = []
     if 'atleti_stats' not in st.session_state: st.session_state['atleti_stats'] = {}
-    
-    # Stato Torneo Corrente (Temporanei)
     if 'teams' not in st.session_state: st.session_state['teams'] = []
     if 'matches' not in st.session_state: st.session_state['matches'] = []
     if 'playoffs' not in st.session_state: st.session_state['playoffs'] = []
     if 'phase' not in st.session_state: st.session_state['phase'] = "Setup"
 
 def aggiorna_database_storico(nome_atleta, pf, ps, sv, sp, vittorie, piazzamento):
-    """Salva i dati del torneo nel profilo permanente dell'atleta."""
     if nome_atleta not in st.session_state['atleti_stats']:
         st.session_state['atleti_stats'][nome_atleta] = {
             "pf": 0, "ps": 0, "sv": 0, "sp": 0, 
             "partite_vinte": 0, "tornei_giocati": 0, "medaglie": []
         }
-    
     s = st.session_state['atleti_stats'][nome_atleta]
     s['pf'] += pf
     s['ps'] += ps
     s['sv'] += sv
     s['sp'] += sp
     s['partite_vinte'] += vittorie
-    s['tornei_giocati'] += 1
-    
+    if piazzamento == 0 and sv > sp: s['partite_vinte'] += 0 # Già gestito
     if piazzamento == 1: s['medaglie'].append("🥇")
     elif piazzamento == 2: s['medaglie'].append("🥈")
     elif piazzamento == 3: s['medaglie'].append("🥉")
+
+def chiudi_torneo_atleta(nome_atleta):
+    if nome_atleta in st.session_state['atleti_stats']:
+        st.session_state['atleti_stats'][nome_atleta]['tornei_giocati'] += 1
 
 def registra_incasso_torneo(teams):
     totale = sum(t.get('quota', 0) for t in teams if t.get('pagato', False))
