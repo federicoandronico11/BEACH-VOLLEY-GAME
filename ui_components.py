@@ -4,6 +4,12 @@ def load_styles():
     st.markdown("""
         <style>
         .stApp { background-color: #0b0e11; color: #e9ecef; }
+        .stExpander {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+            border-radius: 10px !important;
+            margin-bottom: 15px !important;
+        }
         .mega-counter { 
             background: linear-gradient(135deg, #6d28d9, #4c1d95); 
             border-radius: 20px; padding: 25px; text-align: center; 
