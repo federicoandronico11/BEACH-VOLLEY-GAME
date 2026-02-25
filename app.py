@@ -32,7 +32,28 @@ if st.session_state['phase'] in ["Gironi", "Playoff"]:
             
             # Renderizza il tabellone moderno
             scoreboard.pro_scoreboard_ui()
-            
+
+            # Sostituire il contenuto della funzione input_match_pro (circa rigo 35)
+    st.markdown(f"""
+    <div class="match-card-broadcast">
+        <div class="broadcast-row row-red">🔴 <b>{m['A']['name']}</b></div>
+        <div class="broadcast-row row-blue">🔵 <b>{m['B']['name']}</b></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    m['S1A'] = col1.number_input(f"S1 {m['A']['name']}", 0, 40, m.get('S1A',0), key=f"{key_prefix}1a")
+    m['S1B'] = col1.number_input(f"S1 {m['B']['name']}", 0, 40, m.get('S1B',0), key=f"{key_prefix}1b")
+    
+    if st.session_state['match_type'] == "Best of 3":
+        m['S2A'] = col2.number_input(f"S2 {m['A']['name']}", 0, 40, m.get('S2A',0), key=f"{key_prefix}2a")
+        m['S2B'] = col2.number_input(f"S2 {m['B']['name']}", 0, 40, m.get('S2B',0), key=f"{key_prefix}2b")
+        if (m['S1A'] > m['S1B'] and m['S2A'] < m['S2B']) or (m['S1A'] < m['S1B'] and m['S2A'] > m['S2B']):
+            m['S3A'] = col3.number_input(f"S3 {m['A']['name']}", 0, 40, m.get('S3A',0), key=f"{key_prefix}3a")
+            m['S3B'] = col3.number_input(f"S3 {m['B']['name']}", 0, 40, m.get('S3B',0), key=f"{key_prefix}3b")
+    
+    m['Fatto'] = st.checkbox("CONFERMA RISULTATO", m.get('Fatto', False), key=f"{key_prefix}f")
+    return m
             # Ricezione dati dal segnapunti
             if 'ready_to_save' in st.session_state:
                 st.success(f"Risultato pronto: {st.session_state.ready_to_save['set_a']} - {st.session_state.ready_to_save['set_b']}")
