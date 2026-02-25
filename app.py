@@ -1,74 +1,87 @@
 import streamlit as st
-import random
+import pandas as pd
 
-st.set_page_config(page_title="Beach Volley Pro", layout="centered")
+st.set_page_config(page_title="Beach Volley Tournament Manager", layout="wide")
 
-# --- INIZIALIZZAZIONE SICURA ---
-# Usiamo questo blocco per assicurarci che le variabili esistano sempre
-if 'score' not in st.session_state:
-    st.session_state.score = {"Tu": 0, "CPU": 0}
-if 'pos_palla' not in st.session_state:
-    st.session_state.pos_palla = 1
-if 'ultimo_evento' not in st.session_state:
-    st.session_state.ultimo_evento = "Scegli dove schiacciare per iniziare!"
+# --- INIZIALIZZAZIONE STATO ---
+if 'teams' not in st.session_state:
+    st.session_state.teams = []
+if 'matches' not in st.session_state:
+    st.session_state.matches = []
+if 'tournament_started' not in st.session_state:
+    st.session_state.tournament_started = False
 
-# --- LOGICA DI GIOCO ---
-def gioca(mossa_player):
-    mossa_cpu = random.randint(0, 2)
-    st.session_state.pos_palla = mossa_player
+# --- FUNZIONI LOGICHE ---
+def add_team(name):
+    if name and name not in st.session_state.teams:
+        st.session_state.teams.append(name)
+
+def start_tournament(type):
+    st.session_state.tournament_started = True
+    st.session_state.type = type
+    # Qui andrebbe la logica di generazione match (Round Robin o Bracket)
+    if not st.session_state.matches:
+        generate_initial_matches()
+
+def generate_initial_matches():
+    # Esempio semplificato: genera i primi scontri
+    t = st.session_state.teams
+    if len(t) < 2: return
+    for i in range(0, len(t), 2):
+        if i+1 < len(t):
+            st.session_state.matches.append({"Home": t[i], "Away": t[i+1], "ScoreH": 0, "ScoreA": 0, "Stato": "Da giocare"})
+
+# --- INTERFACCIA UTENTE (UI) ---
+st.title("🏐 Beach Volley Tourney Hub")
+st.markdown("---")
+
+# SIDEBAR: Configurazione
+with st.sidebar:
+    st.header("Configurazione Torneo")
+    new_team = st.text_input("Aggiungi Team (es. Mario/Luigi)")
+    if st.button("Aggiungi"):
+        add_team(new_team)
     
-    if mossa_player == mossa_cpu:
-        st.session_state.score["CPU"] += 1
-        st.session_state.ultimo_evento = f"❌ MURO! La CPU era a {['Sinistra', 'Centro', 'Destra'][mossa_cpu]}."
-    else:
-        st.session_state.score["Tu"] += 1
-        st.session_state.ultimo_evento = "🔥 PUNTO! Palla a terra!"
-
-# --- INTERFACCIA ---
-st.title("🏐 Beach Volley Visual")
-
-# Visualizzazione Punteggio
-punteggio_tu = st.session_state.score.get("Tu", 0)
-punteggio_cpu = st.session_state.score.get("CPU", 0)
-st.subheader(f"Punteggio: 👤 Tu {punteggio_tu} — 🤖 CPU {punteggio_cpu}")
-
-# --- CAMPO VISIVO ---
-def disegna_campo():
-    pos = st.session_state.pos_palla
+    st.write("### Team Iscritti:")
+    for team in st.session_state.teams:
+        st.text(f"• {team}")
     
-    # Creiamo le righe come stringhe di icone
-    riga_cpu = ["⬜", "⬜", "⬜"]
-    riga_cpu[random.randint(0,2)] = "🤖" # La CPU si muove a caso per estetica
-    
-    riga_palla = ["  ", "  ", "  "]
-    riga_palla[pos] = "🏐"
-    
-    riga_player = ["⬜", "⬜", "⬜"]
-    riga_player[1] = "👤" # Tu sei al centro
-    
-    # Layout a colonne per centrare il campo
-    st.markdown(f"### <center>{' '.join(riga_cpu)}</center>", unsafe_allow_html=True)
-    st.write("<center>⎯⎯⎯⎯⎯⎯⎯ NET ⎯⎯⎯⎯⎯⎯⎯</center>", unsafe_allow_html=True)
-    st.markdown(f"### <center>{' '.join(riga_palla)}</center>", unsafe_allow_html=True)
-    st.markdown(f"### <center>{' '.join(riga_player)}</center>", unsafe_allow_html=True)
+    if len(st.session_state.teams) >= 2:
+        formula = st.radio("Formula Torneo", ["Gironi + Eliminazione", "Doppia Eliminazione (Pro)"])
+        if st.button("Genera Torneo"):
+            start_tournament(formula)
 
-disegna_campo()
+# CORPO PRINCIPALE
+if not st.session_state.tournament_started:
+    st.info("👈 Inserisci almeno due team nella barra laterale e scegli la formula per iniziare.")
+else:
+    tab1, tab2, tab3 = st.tabs(["📊 Tabellone Match", "📈 Classifica/Bracket", "⚙️ Impostazioni"])
 
-st.info(st.session_state.ultimo_evento)
+    with tab1:
+        st.subheader("Inserimento Risultati")
+        for idx, match in enumerate(st.session_state.matches):
+            col1, col2, col3, col4 = st.columns([2,1,1,2])
+            with col1: st.write(f"**{match['Home']}**")
+            with col2: score_h = st.number_input("Set", min_value=0, max_value=2, key=f"h{idx}")
+            with col3: score_a = st.number_input("Set", min_value=0, max_value=2, key=f"a{idx}")
+            with col4: st.write(f"**{match['Away']}**")
+            
+            if st.button(f"Conferma Risultato {idx}", key=f"btn{idx}"):
+                st.session_state.matches[idx]['ScoreH'] = score_h
+                st.session_state.matches[idx]['ScoreA'] = score_a
+                st.session_state.matches[idx]['Stato'] = "Finito"
+                st.success("Risultato salvato!")
 
-# Pulsanti
-col1, col2, col3 = st.columns(3)
-with col1:
-    if st.button("Schiaccia SX"): gioca(0)
-with col2:
-    if st.button("Schiaccia Centro"): gioca(1)
-with col3:
-    if st.button("Schiaccia DX"): gioca(2)
+    with tab2:
+        st.subheader("Andamento Torneo")
+        if st.session_state.type == "Gironi + Eliminazione":
+            # Visualizzazione semplice dei risultati
+            df = pd.DataFrame(st.session_state.matches)
+            st.table(df)
+        else:
+            st.warning("Visualizzazione Grafica Bracket (Doppia Elim.) in fase di sviluppo.")
 
-# --- RESET SICURO ---
-if st.button("Ricomincia Partita"):
-    # Invece di clear(), resettiamo i valori specifici
-    st.session_state.score = {"Tu": 0, "CPU": 0}
-    st.session_state.pos_palla = 1
-    st.session_state.ultimo_evento = "Nuova partita! Servi tu."
-    st.rerun()
+    with tab3:
+        if st.button("Reset Totale"):
+            st.session_state.clear()
+            st.rerun()
