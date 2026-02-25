@@ -5,19 +5,18 @@ def init_session():
     # Database Storici (Permanenti)
     if 'db_atleti' not in st.session_state: st.session_state['db_atleti'] = []
     if 'ranking_atleti' not in st.session_state: st.session_state['ranking_atleti'] = {}
-    if 'db_teams' not in st.session_state: st.session_state['db_teams'] = []
     if 'albo_oro' not in st.session_state: st.session_state['albo_oro'] = []
     if 'storico_incassi' not in st.session_state: st.session_state['storico_incassi'] = []
     if 'atleti_stats' not in st.session_state: st.session_state['atleti_stats'] = {}
     
-    # Stato Torneo Corrente
+    # Stato Torneo Corrente (Temporanei)
     if 'teams' not in st.session_state: st.session_state['teams'] = []
     if 'matches' not in st.session_state: st.session_state['matches'] = []
     if 'playoffs' not in st.session_state: st.session_state['playoffs'] = []
     if 'phase' not in st.session_state: st.session_state['phase'] = "Setup"
 
 def aggiorna_database_storico(nome_atleta, pf, ps, sv, sp, vittorie, piazzamento):
-    """Salva i dati del torneo appena concluso nel profilo permanente dell'atleta."""
+    """Salva i dati del torneo nel profilo permanente dell'atleta."""
     if nome_atleta not in st.session_state['atleti_stats']:
         st.session_state['atleti_stats'][nome_atleta] = {
             "pf": 0, "ps": 0, "sv": 0, "sp": 0, 
@@ -44,3 +43,10 @@ def registra_incasso_torneo(teams):
             "Incasso": f"{totale} €",
             "Squadre": len(teams)
         })
+
+def assegna_punti_finali(teams):
+    n = len(teams)
+    for i, team in enumerate(teams):
+        punti = (n - i) * 10
+        for atleta in [team['p1'], team['p2']]:
+            st.session_state['ranking_atleti'][atleta] = st.session_state['ranking_atleti'].get(atleta, 0) + punti
