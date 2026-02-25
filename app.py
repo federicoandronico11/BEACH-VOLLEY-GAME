@@ -150,6 +150,36 @@ elif st.session_state['phase'] == "Playoff":
                 st.session_state['matches'] = []
                 st.session_state['playoffs'] = []
                 st.session_state['phase'] = "Setup"
+                # --- FASE 1: SETUP E ISCRIZIONI ---
+if st.session_state['phase'] == "Setup":
+    st.title("🏐 CONFIGURAZIONE TORNEO")
+    
+    # Sezione Cassa Rapida (Nuova)
+    incasso_attuale = sum(t.get('quota', 0) for t in st.session_state['teams'] if t.get('pagato', False))
+    
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric("Squadre Iscritte", len(st.session_state['teams']))
+    with c2:
+        st.metric("Incasso Corrente", f"{incasso_attuale} €", delta="In cassa")
+    with c3:
+        if st.button("📊 Vedi Storico Incassi"):
+            st.toast("Scorri in basso per lo storico!")
+
+    # Inseriamo una Tab per separare Iscrizioni da Contabilità
+    tab_iscrizioni, tab_cassa = st.tabs(["📝 Iscrizioni", "💰 Registro Cassa"])
+
+    with tab_iscrizioni:
+        # Qui incolla tutto il codice precedente di col_isc e col_list
+        # ... (il form e la lista squadre che hai già) ...
+
+    with tab_cassa:
+        st.subheader("Storico Incassi Tornei Conclusi")
+        if not st.session_state['storico_incassi']:
+            st.info("Nessun torneo archiviato nel registro cassa.")
+        else:
+            df_cassa = pd.DataFrame(st.session_state['storico_incassi'])
+            st.table(df_cassa)
                 
                 st.balloons()
                 st.rerun()
