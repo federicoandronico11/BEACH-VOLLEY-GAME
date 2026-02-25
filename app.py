@@ -8,7 +8,7 @@ st.set_page_config(page_title="Zero Skills Cup", layout="wide")
 st.markdown("""
     <style>
     .stApp { background-color: #000000; color: #ffffff; }
-    h1, h2, h3 { color: #9370DB !important; }
+    h1, h2, h3 { color: #9370DB !important; font-family: 'Arial Black', sans-serif; }
     .stButton>button { background-color: #4B0082; color: white; border-radius: 8px; width: 100%; }
     [data-testid="stSidebar"] { background-color: #111111; border-right: 1px solid #4B0082; }
     </style>
@@ -60,7 +60,7 @@ with st.sidebar:
                 for j in range(i + 1, len(lista)):
                     st.session_state['matches'].append({
                         "A": lista[i], "B": lista[j], 
-                        "SA": 0, "SB": 0, "Fatto": False
+                        "Set_Finale": "2-0", "SA": 0, "SB": 0, "Fatto": False
                     })
             st.rerun()
             
@@ -76,16 +76,36 @@ if st.session_state['phase'] == "Gironi":
         st.subheader("Inserimento Risultati")
         for idx, m in enumerate(st.session_state['matches']):
             if not m['Fatto']:
-                c1, c2, c3, c4, c5 = st.columns([3,1,1,3,1])
-                c1.write(m['A'])
-                sa = c2.number_input("S", 0, 2, key=f"sa{idx}")
-                sb = c3.number_input("S", 0, 2, key=f"sb{idx}")
-                c4.write(m['B'])
-                if c5.button("Invia", key=f"btn{idx}"):
-                    st.session_state['matches'][idx]['SA'] = sa
-                    st.session_state['matches'][idx]['SB'] = sb
-                    st.session_state['matches'][idx]['Fatto'] = True
-                    st.rerun()
+                with st.expander(f"Match: {m['A']} vs {m['B']}", expanded=True):
+                    # Inserimento punti singoli set
+                    c1, c2, c3 = st.columns(3)
+                    with c1: st.write("Set 1 Punti")
+                    with c2: s1a = st.number_input(f"A", 0, 30, key=f"s1a{idx}")
+                    with c3: s1b = st.number_input(f"B", 0, 30, key=f"s1b{idx}")
+                    
+                    c1, c2, c3 = st.columns(3)
+                    with c1: st.write("Set 2 Punti")
+                    with c2: s2a = st.number_input(f"A ", 0, 30, key=f"s2a{idx}")
+                    with c3: s2b = st.number_input(f"B ", 0, 30, key=f"s2b{idx}")
+
+                    c1, c2, c3 = st.columns(3)
+                    with c1: st.write("Set 3 Punti (se giocato)")
+                    with c2: s3a = st.number_input(f"A  ", 0, 30, key=f"s3a{idx}")
+                    with c3: s3b = st.number_input(f"B  ", 0, 30, key=f"s3b{idx}")
+
+                    # Selezione risultato finale in set
+                    ris_finale = st.selectbox("Risultato Finale Set", ["2-0", "2-1", "1-2", "0-2"], key=f"sel{idx}")
+                    
+                    if st.button("Conferma Risultato", key=f"btn{idx}"):
+                        # Estraiamo i set vinti dal valore della tendina (es. "2-1" -> 2 e 1)
+                        vinti_a = int(ris_finale.split("-")[0])
+                        vinti_b = int(ris_finale.split("-")[1])
+                        
+                        st.session_state['matches'][idx]['SA'] = vinti_a
+                        st.session_state['matches'][idx]['SB'] = vinti_b
+                        st.session_state['matches'][idx]['Set_Finale'] = ris_finale
+                        st.session_state['matches'][idx]['Fatto'] = True
+                        st.rerun()
         
     with t2:
         punti = {t: 0 for t in st.session_state['teams']}
@@ -141,3 +161,6 @@ elif st.session_state['phase'] == "Playoff":
         if campione != "-":
             st.balloons()
             st.success(f"🎊 {campione} CAMPIONE ZERO SKILLS CUP! 🎊")
+
+elif st.session_state['phase'] == "Setup":
+    st.info("Iscrivi almeno 4 squadre nella sidebar per iniziare.")
