@@ -84,4 +84,68 @@ elif st.session_state['phase'] == "Gironi":
     with tab1:
         for idx, m in enumerate(st.session_state['matches']):
             if not m['Fatto']:
-                with st.expander(f"🏟️ {m['
+                with st.expander(f"🏟️ {m['A']['name']} vs {m['B']['name']}"):
+                    ris = st.selectbox("Risultato", ["2-0", "2-1", "1-2", "0-2"], key=f"r{idx}")
+                    if st.button("Salva", key=f"btn{idx}"):
+                        va, vb = map(int, ris.split("-"))
+                        st.session_state['matches'][idx].update({"SA": va, "SB": vb, "Fatto": True})
+                        st.rerun()
+
+    with tab2:
+        res = {t['full']: {"P": 0, "S": 0} for t in st.session_state['teams']}
+        for m in st.session_state['matches']:
+            if m['Fatto']:
+                res[m['A']['full']]["S"] += m['SA']; res[m['B']['full']]["S"] += m['SB']
+                if m['SA'] > m['SB']: res[m['A']['full']]["P"] += 3
+                else: res[m['B']['full']]["P"] += 3
+        df = pd.DataFrame.from_dict(res, orient='index').reset_index().sort_values(by=["P", "S"], ascending=False)
+        st.table(df)
+
+        if all(m['Fatto'] for m in st.session_state['matches']):
+            if st.button("🏆 PASSA AI PLAYOFF"):
+                top = df["index"].tolist()[:4]
+                # Recupero oggetti team
+                t_objs = [next(t for t in st.session_state['teams'] if t['full'] == name) for name in top]
+                st.session_state['playoffs'] = [
+                    {"N": "Semi 1", "A": t_objs[0], "B": t_objs[3], "V": None, "L": None},
+                    {"N": "Semi 2", "A": t_objs[1], "B": t_objs[2], "V": None, "L": None}
+                ]
+                st.session_state['phase'] = "Playoff"
+                st.rerun()
+
+# 4. LOGICA PLAYOFF
+elif st.session_state['phase'] == "Playoff":
+    st.header("🔥 FASE FINALE")
+    
+    
+
+    c1, c2 = st.columns(2)
+    for i in range(2):
+        with [c1, c2][i]:
+            p = st.session_state['playoffs'][i]
+            st.markdown(f"<div class='bracket-box'>{p['A']['name']}<br>vs<br>{p['B']['name']}</div>", unsafe_allow_html=True)
+            win = st.selectbox(f"Vincitore {p['N']}", ["-", "Team A", "Team B"], key=f"p{i}")
+            if win != "-":
+                st.session_state['playoffs'][i]['V'] = p['A'] if win == "Team A" else p['B']
+                st.session_state['playoffs'][i]['L'] = p['B'] if win == "Team A" else p['A']
+
+    if all(p['V'] for p in st.session_state['playoffs'][:2]) and len(st.session_state['playoffs']) == 2:
+        if st.button("✨ GENERA FINALI"):
+            st.session_state['playoffs'].append({"N": "FINALE 1°", "A": st.session_state['playoffs'][0]['V'], "B": st.session_state['playoffs'][1]['V'], "V": None})
+            st.session_state['playoffs'].append({"N": "FINALE 3°", "A": st.session_state['playoffs'][0]['L'], "B": st.session_state['playoffs'][1]['L'], "V": None})
+            st.rerun()
+
+    if len(st.session_state['playoffs']) > 2:
+        f1 = st.session_state['playoffs'][2]
+        st.markdown(f"<div class='bracket-box' style='border-color:gold;'>ORO: {f1['A']['name']} vs {f1['B']['name']}</div>", unsafe_allow_html=True)
+        winner_choice = st.selectbox("CAMPIONE:", ["-", f1['A']['name'], f1['B']['name']], key="final")
+        
+        if winner_choice != "-" and st.button("🏁 CHIUDI E ASSEGNA PUNTI"):
+            vincitore = f1['A'] if winner_choice == f1['A']['name'] else f1['B']
+            pts = len(st.session_state['teams']) * 10
+            st.session_state['ranking_atleti'][vincitore['p1']] += pts
+            st.session_state['ranking_atleti'][vincitore['p2']] += pts
+            st.session_state['albo_oro'].append(f"🏆 {vincitore['name']} ({vincitore['p1']}/{vincitore['p2']})")
+            st.session_state['phase'] = "Setup"
+            st.session_state['teams'] = []
+            st.rerun()
