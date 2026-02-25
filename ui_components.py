@@ -28,7 +28,7 @@ def display_sidebar():
         with tab1:
             rank = sorted(st.session_state['ranking_atleti'].items(), key=lambda x: x[1], reverse=True)
             for i, (name, pts) in enumerate(rank):
-                st.markdown(f"**{i+1}. {name}** — `{pts} PT`平衡")
+                st.markdown(f"**{i+1}. {name}** — `{pts} PT`")
         
         with tab2:
             scelta = st.selectbox("Seleziona Atleta", ["-"] + st.session_state['db_atleti'])
@@ -43,9 +43,6 @@ def display_sidebar():
                         <div class='stat-item'><b>Win</b><br>{s['partite_vinte']}</div>
                         <div class='stat-item'><b>Set V</b><br>{s['sv']}</div>
                         <div class='stat-item'><b>Set P</b><br>{s['sp']}</div>
-                    </div>
-                    <div style='margin-top:10px; font-size:0.8rem; color:#9ca3af;'>
-                        Punti fatti: {s['pf']} | Subiti: {s['ps']}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
