@@ -3,42 +3,54 @@ import streamlit as st
 def load_styles():
     st.markdown("""
         <style>
-        .stApp { background-color: #000; color: #fff; }
-        .mega-counter { background: linear-gradient(180deg, #111, #000); border: 2px solid #9370DB; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 20px; }
-        .ranking-row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 5px 0; }
-        .profile-card { background: #111; border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
-        .medal-box { font-size: 1.5rem; letter-spacing: 5px; }
-        .score-input { background: #222; border-radius: 5px; padding: 5px; text-align: center; }
+        .stApp { background-color: #0b0e11; color: #e9ecef; }
+        .mega-counter { 
+            background: linear-gradient(135deg, #6d28d9, #4c1d95); 
+            border-radius: 20px; padding: 25px; text-align: center; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); margin-bottom: 25px;
+        }
+        .profile-card { 
+            background: #1f2937; border: 1px solid #374151; 
+            padding: 20px; border-radius: 15px; margin-bottom: 15px;
+            border-left: 5px solid #8b5cf6;
+        }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .stat-item { background: #111827; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #374151; }
+        .medal-display { font-size: 1.8rem; margin: 10px 0; }
         </style>
     """, unsafe_allow_html=True)
 
 def display_sidebar():
     with st.sidebar:
-        st.header("🏆 LEADERBOARD")
-        tabs = st.tabs(["Ranking", "Profili"])
+        st.header("🏆 HALL OF FAME")
+        tab1, tab2 = st.tabs(["RANKING", "PROFILI"])
         
-        with tabs[0]:
+        with tab1:
             rank = sorted(st.session_state['ranking_atleti'].items(), key=lambda x: x[1], reverse=True)
-            for name, pts in rank:
-                st.markdown(f"<div class='ranking-row'><span>{name}</span><span>{pts} PT</span></div>", unsafe_allow_html=True)
+            for i, (name, pts) in enumerate(rank):
+                st.markdown(f"**{i+1}. {name}** — `{pts} PT`平衡")
         
-        with tabs[1]:
-            atleta_scelto = st.selectbox("Cerca Atleta", ["-"] + st.session_state['db_atleti'])
-            if atleta_scelto != "-":
-                stats = st.session_state['atleti_stats'].get(atleta_scelto, {"pf":0,"ps":0,"sv":0,"sp":0,"partite":0,"medaglie":[]})
+        with tab2:
+            scelta = st.selectbox("Seleziona Atleta", ["-"] + st.session_state['db_atleti'])
+            if scelta != "-":
+                s = st.session_state['atleti_stats'].get(scelta, {"pf":0,"ps":0,"sv":0,"sp":0,"partite_vinte":0,"tornei_giocati":0,"medaglie":[]})
                 st.markdown(f"""
                 <div class='profile-card'>
-                    <h4>{atleta_scelto}</h4>
-                    <div class='medal-box'>{''.join(stats['medaglie']) if stats['medaglie'] else 'Zero Titoli'}</div>
-                    <hr>
-                    <p>🏟️ Partite: {stats['partite']}</p>
-                    <p>🏐 Set: {stats['sv']}V / {stats['sp']}P</p>
-                    <p>📈 Punti Fatti: {stats['pf']}</p>
-                    <p>📉 Punti Subiti: {stats['ps']}</p>
+                    <h3 style='margin:0;'>👤 {scelta}</h3>
+                    <div class='medal-display'>{''.join(s['medaglie']) if s['medaglie'] else '🎖️ Debuttante'}</div>
+                    <div class='stat-grid'>
+                        <div class='stat-item'><b>Tornei</b><br>{s['tornei_giocati']}</div>
+                        <div class='stat-item'><b>Win</b><br>{s['partite_vinte']}</div>
+                        <div class='stat-item'><b>Set V</b><br>{s['sv']}</div>
+                        <div class='stat-item'><b>Set P</b><br>{s['sp']}</div>
+                    </div>
+                    <div style='margin-top:10px; font-size:0.8rem; color:#9ca3af;'>
+                        Punti fatti: {s['pf']} | Subiti: {s['ps']}
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
 
         st.write("---")
-        st.header("🏅 ALBO D'ORO")
-        for entry in reversed(st.session_state['albo_oro']):
-            st.write(entry)
+        if st.button("🗑️ RESET SESSIONE", use_container_width=True):
+            st.session_state.clear()
+            st.rerun()
