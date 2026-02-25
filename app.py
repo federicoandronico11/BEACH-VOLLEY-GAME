@@ -93,6 +93,10 @@ def input_match_pro(m, key_prefix):
 
 # --- 4. FASE SETUP ---
 if st.session_state['phase'] == "Setup":
+    # Aggiungere circa al rigo 95
+        if st.session_state['settings']['formato_torneo'] == "Doppia Eliminazione":
+            # Logica semplificata per inizializzare il tabellone a doppia eliminazione
+            st.session_state['matches'] = [{"N": f"Winner R1 - G{i+1}", "A": teams_list[i], "B": teams_list[i+1], "Fatto": False} for i in range(0, len(teams_list)-1, 2)]
     st.title("🏐 ZERO SKILLS CUP - DASHBOARD")
     # Aggiungere circa al rigo 75
     with st.expander("⚙️ IMPOSTAZIONI TECNICHE TORNEO"):
