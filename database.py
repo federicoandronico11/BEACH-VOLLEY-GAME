@@ -1,16 +1,15 @@
 import streamlit as st
 
-def init_db():
+def init_session():
+    # Database persistenti (Atleti, Squadre, Ranking)
     if 'db_atleti' not in st.session_state: st.session_state['db_atleti'] = []
-    if 'ranking_atleti' not in st.session_state: st.session_state['ranking_atleti'] = {}
     if 'db_teams' not in st.session_state: st.session_state['db_teams'] = []
+    if 'ranking_atleti' not in st.session_state: st.session_state['ranking_atleti'] = {}
     if 'albo_oro' not in st.session_state: st.session_state['albo_oro'] = []
-
-def save_atleta(nome):
-    if nome not in st.session_state['db_atleti'] and nome != "-":
-        st.session_state['db_atleti'].append(nome)
-        st.session_state['ranking_atleti'][nome] = 0
-
-def add_points(nome, punti):
-    if nome in st.session_state['ranking_atleti']:
-        st.session_state['ranking_atleti'][nome] += punti
+    
+    # Stato del Torneo attuale
+    if 'teams' not in st.session_state: st.session_state['teams'] = []
+    if 'matches' not in st.session_state: st.session_state['matches'] = []
+    if 'playoffs' not in st.session_state: st.session_state['playoffs'] = []
+    if 'phase' not in st.session_state: st.session_state['phase'] = "Setup"
+    if 'min_teams' not in st.session_state: st.session_state['min_teams'] = 4
