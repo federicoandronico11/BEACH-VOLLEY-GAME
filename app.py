@@ -54,18 +54,17 @@ with st.sidebar:
     for t in st.session_state['teams']:
         st.text(f"• {t}")
 
-    # AVVIO TORNEO
     if len(st.session_state['teams']) >= 4 and st.session_state['phase'] == "Setup":
         if st.button("🚀 INIZIA TORNEO"):
             if st.session_state['tournament_type'] == "Gironi + Eliminazione":
                 st.session_state['phase'] = "Gironi"
+                st.session_state['matches'] = []
                 lista = st.session_state['teams']
                 for i in range(len(lista)):
                     for j in range(i + 1, len(lista)):
-                        st.session_state['matches'].append({"A": lista[i], "B": lista[j], "Set_Finale": "2-0", "SA": 0, "SB": 0, "Fatto": False})
+                        st.session_state['matches'].append({"A": lista[i], "B": lista[j], "SA": 0, "SB": 0, "Fatto": False})
             else:
                 st.session_state['phase'] = "Playoff"
-                # Prepariamo subito le semifinali con i primi 4 iscritti
                 top4 = st.session_state['teams'][:4]
                 st.session_state['playoffs'] = [
                     {"N": "Semi 1", "A": top4[0], "B": top4[3], "V": None},
@@ -85,9 +84,9 @@ if st.session_state['phase'] == "Gironi":
         for idx, m in enumerate(st.session_state['matches']):
             if not m['Fatto']:
                 with st.expander(f"Match: {m['A']} vs {m['B']}"):
-                    c1, c2, c3 = st.columns(3)
-                    with c2: st.number_input(f"Set 1 - {m['A'][:5]}", 0, 30, key=f"s1a{idx}")
-                    with c3: st.number_input(f"Set 1 - {m['B'][:5]}", 0, 30, key=f"s1b{idx}")
+                    c1, c2 = st.columns(2)
+                    with c1: st.write(f"Punti {m['A']}")
+                    with c2: st.write(f"Punti {m['B']}")
                     ris_finale = st.selectbox("Risultato Set", ["2-0", "2-1", "1-2", "0-2"], key=f"sel{idx}")
                     if st.button("Salva Risultato", key=f"btn{idx}"):
                         v_a, v_b = map(int, ris_finale.split("-"))
@@ -104,7 +103,6 @@ if st.session_state['phase'] == "Gironi":
         df = pd.DataFrame([{"Team": t, "Punti": punti[t], "Set V": set_v[t]} for t in st.session_state['teams']]).sort_values(by=["Punti", "Set V"], ascending=False)
         st.table(df)
         if all(m['Fatto'] for m in st.session_state['matches']):
-            st.success("Tutti i match sono conclusi!")
             if st.button("🏆 PROCEDI ALLA FASE AD ELIMINAZIONE"):
                 top4 = df["Team"].tolist()[:4]
                 st.session_state['playoffs'] = [
@@ -118,22 +116,19 @@ if st.session_state['phase'] == "Gironi":
 elif st.session_state['phase'] == "Playoff":
     st.header("🔥 TABELLONE AD ELIMINAZIONE DIRETTA")
     
-
-[Image of single elimination tournament bracket]
-
-    
     col1, col2 = st.columns(2)
-    for i in range(2):
+    for i in range(min(2, len(st.session_state['playoffs']))):
         with [col1, col2][i]:
             p = st.session_state['playoffs'][i]
             st.subheader(p['N'])
             win = st.selectbox(f"Chi vince {p['N']}?", ["-", p['A'], p['B']], key=f"plwin{i}")
             if win != "-": st.session_state['playoffs'][i]['V'] = win
 
-    if all(p.get('V') for p in st.session_state['playoffs'][:2]) and len(st.session_state['playoffs']) == 2:
-        if st.button("GENERA FINALISSIMA"):
-            st.session_state['playoffs'].append({"N": "FINALE", "A": st.session_state['playoffs'][0]['V'], "B": st.session_state['playoffs'][1]['V'], "V": None})
-            st.rerun()
+    if len(st.session_state['playoffs']) == 2:
+        if all(p.get('V') for p in st.session_state['playoffs']):
+            if st.button("GENERA FINALISSIMA"):
+                st.session_state['playoffs'].append({"N": "FINALE", "A": st.session_state['playoffs'][0]['V'], "B": st.session_state['playoffs'][1]['V'], "V": None})
+                st.rerun()
 
     if len(st.session_state['playoffs']) > 2:
         st.divider()
