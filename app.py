@@ -220,3 +220,15 @@ with st.sidebar:
 if menu == "Hall of Fame 🏆":
     ranking_page.show_podium()
     st.stop() # Interrompe l'app qui per mostrare solo la classifica
+
+import simulator # Da aggiungere in alto insieme agli altri import
+
+# All'interno di elif st.session_state['phase'] == "Gironi":
+# O all'interno di elif st.session_state['phase'] == "Playoff":
+
+with st.sidebar:
+    st.write("---")
+    st.subheader("🛠️ TOOLS SVILUPPATORE")
+    if st.button("🎲 SIMULA RISULTATI MANCANTI", use_container_width=True):
+        simulator.simulate_random_tournament()
+        st.rerun()
