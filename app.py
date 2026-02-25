@@ -118,11 +118,7 @@ elif st.session_state['phase'] == "Gironi":
 elif st.session_state['phase'] == "Playoff":
     st.header("🏁 FINALI")
     
-    
-
-[Image of single elimination tournament bracket]
-
-
+    # Visualizzazione Bracket (Grafico logicamente rappresentato)
     c1, c2 = st.columns(2)
     for i in range(2):
         with [c1, c2][i]:
