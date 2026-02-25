@@ -1,28 +1,32 @@
 import streamlit as st
+import pandas as pd
 
-def show_podium():
-    st.title("🏆 HALL OF FAME")
-    rank = sorted(st.session_state['ranking_atleti'].items(), key=lambda x: x[1], reverse=True)
-    if not rank:
-        st.info("Nessun dato disponibile nel ranking."); return
+def show_ranking_pro():
+    st.title("🏆 HALL OF FAME & RANKING")
+    
+    # Podio Grafico
+    rank = sorted(st.session_state.ranking_atleti.items(), key=lambda x: x[1], reverse=True)
+    if len(rank) >= 3:
+        c1, c2, c3 = st.columns([1,1,1])
+        with c2: st.metric("🥇 1° Posto", rank[0][0], f"{rank[0][1]} PT")
+        with c1: st.metric("🥈 2° Posto", rank[1][0], f"{rank[1][1]} PT")
+        with c3: st.metric("🥉 3° Posto", rank[2][0], f"{rank[2][1]} PT")
 
-    st.markdown("""
-        <style>
-        .podium { display: flex; align-items: flex-end; justify-content: center; height: 250px; gap: 15px; margin-bottom: 50px; }
-        .step { text-align: center; width: 120px; color: white; border-radius: 10px 10px 0 0; padding-bottom: 10px; }
-        .gold { background: #ffd700; height: 200px; color: black; box-shadow: 0 0 20px #ffd700; }
-        .silver { background: #c0c0c0; height: 150px; color: black; }
-        .bronze { background: #cd7f32; height: 100px; color: black; }
-        </style>
-    """, unsafe_allow_html=True)
+    st.write("---")
+    st.subheader("Classifica Generale")
+    for i, (name, pts) in enumerate(rank):
+        if st.button(f"{i+1}° {name} - {pts} PT", key=f"rank_{name}"):
+            show_athlete_career(name)
 
-    st.markdown("<div class='podium'>", unsafe_allow_html=True)
-    if len(rank) > 1: st.markdown(f"<div class='step silver'>🥈<br>{rank[1][0]}</div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='step gold'>🥇<br>{rank[0][0]}</div>", unsafe_allow_html=True)
-    if len(rank) > 2: st.markdown(f"<div class='step bronze'>🥉<br>{rank[2][0]}</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    for name, pts in rank:
-        if st.button(f"👤 Scheda Atleta: {name} ({pts} PT)", key=f"btn_{name}", use_container_width=True):
-            st.session_state.search_atleta = name
-            st.rerun()
+def show_athlete_career(name):
+    st.sidebar.markdown(f"## 👤 Carriera: {name}")
+    s = st.session_state.atleti_stats.get(name, {"pf":0,"ps":0,"sv":0,"sp":0,"v":0,"p":0})
+    
+    # Calcolo Quozienti
+    qp = round(s['pf']/max(1, s['ps']), 3)
+    qs = round(s['sv']/max(1, s['sp']), 3)
+    
+    st.sidebar.write(f"Vinte: {s['v']} / Perse: {s['p']}")
+    st.sidebar.write(f"Quoziente Punti: **{qp}**")
+    st.sidebar.write(f"Quoziente Set: **{qs}**")
+    # Qui potresti aggiungere uno st.line_chart per l'andamento
