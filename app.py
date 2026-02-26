@@ -5,6 +5,10 @@ st.set_page_config(page_title="Z-SKILLS CUP 26", layout="wide")
 database.init_session()
 ui_components.apply_pro_theme()
 
+# Inizializzazione stato battuta se non esiste
+if 'service_turn' not in st.session_state:
+    st.session_state.service_turn = "A"
+
 # --- SIDEBAR: LIVE RANKING & CARRIERA ---
 with st.sidebar:
     st.markdown("<h2 style='color: #00ff85; font-family: Oswald;'>🏆 LIVE RANKING</h2>", unsafe_allow_html=True)
@@ -123,50 +127,75 @@ elif st.session_state.menu_attivo == "SETUP":
 
 # --- SEZIONE LIVE ---
 elif st.session_state.menu_attivo == "LIVE":
-    if st.session_state.phase == "Gironi":
-        st.subheader("📺 Fase a Gironi")
-        for i, m in enumerate(st.session_state.matches):
-            st.markdown(f'<div class="broadcast-card"><div class="team-red">{m["A"]["name"]}</div><div class="score-box">{m["S1A"]}-{m["S1B"]}</div><div class="team-blue">{m["B"]["name"]}</div></div>', unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #00ff85; font-family: Oswald;'>🎮 SCOREBOARD LIVE</h2>", unsafe_allow_html=True)
+    
+    # Identifica il match corrente non concluso
+    match_corrente = next((m for m in st.session_state.matches if not m['Fatto']), None)
+    if not match_corrente and st.session_state.phase == "Eliminazione":
+        match_corrente = next((p for p in st.session_state.playoffs if not p['Fatto']), None)
+
+    if match_corrente:
+        # --- BLOCCO SEGNA PUNTI LIVE ---
+        with st.container():
+            st.markdown('<div class="broadcast-card" style="justify-content: space-around;">', unsafe_allow_html=True)
             
-            if not m['Fatto']:
-                c1, c2, c3 = st.columns([1,1,1])
-                m['S1A'] = c1.number_input("Punti A", 0, 45, m['S1A'], key=f"s1a{i}")
-                m['S1B'] = c2.number_input("Punti B", 0, 45, m['S1B'], key=f"s1b{i}")
+            col_a, col_mid, col_b = st.columns([2, 1, 2])
+            
+            with col_a:
+                serv_a = '<span class="service-indicator"></span>' if st.session_state.service_turn == "A" else ""
+                st.markdown(f"<div class='team-red'>{serv_a} {match_corrente['A']['name']}</div>", unsafe_allow_html=True)
+                ca1, ca2 = st.columns(2)
+                if ca1.button("➕", key="p_plus_a", help="+1 Punto A"): match_corrente['S1A'] += 1; st.rerun()
+                if ca2.button("➖", key="p_minus_a"): match_corrente['S1A'] = max(0, match_corrente['S1A'] - 1); st.rerun()
                 
-                if c3.button("CONFERMA", key=f"btn{i}"):
-                    m['Fatto'] = True
-                    if not m['A'].get('is_bye'):
-                        database.aggiorna_carriera(m['A'], m['S1A'], m['S1B'], m['S1A'] > m['S1B'], 1 if m['S1A']>m['S1B'] else 0, 1 if m['S1B']>m['S1A'] else 0)
-                    if not m['B'].get('is_bye'):
-                        database.aggiorna_carriera(m['B'], m['S1B'], m['S1A'], m['S1B'] > m['S1A'], 1 if m['S1B']>m['S1A'] else 0, 1 if m['S1A']>m['S1B'] else 0)
+            with col_mid:
+                st.markdown(f"<div class='score-box' style='text-align:center;'>{match_corrente['S1A']}-{match_corrente['S1B']}</div>", unsafe_allow_html=True)
+                if st.button("🔄 SERVICE"):
+                    st.session_state.service_turn = "B" if st.session_state.service_turn == "A" else "A"
                     st.rerun()
-            else:
-                st.caption(f"Match Concluso. {m.get('Note', '')}")
-        
-        if all(m['Fatto'] for m in st.session_state.matches):
-            if st.button("🏆 PASSA AI PLAYOFF"):
-                vincitori = []
-                for m in st.session_state.matches:
-                    vincitori.append(m['A'] if m['S1A'] > m['S1B'] else m['B'])
-                st.session_state.playoffs = [{"A": vincitori[0], "B": vincitori[1], "S1A":0, "S1B":0, "Fatto":False, "N":"FINALE"}]
-                st.session_state.phase = "Eliminazione"
+
+            with col_b:
+                serv_b = '<span class="service-indicator"></span>' if st.session_state.service_turn == "B" else ""
+                st.markdown(f"<div class='team-blue' style='text-align:right;'>{match_corrente['B']['name']} {serv_b}</div>", unsafe_allow_html=True)
+                cb1, cb2 = st.columns(2)
+                if cb1.button("➕", key="p_plus_b", help="+1 Punto B"): match_corrente['S1B'] += 1; st.rerun()
+                if cb2.button("➖", key="p_minus_b"): match_corrente['S1B'] = max(0, match_corrente['S1B'] - 1); st.rerun()
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Pulsante di Sincronizzazione / Chiusura Match
+            if st.button("🚀 COMUNICA RISULTATO AL TABELLONE", type="primary"):
+                match_corrente['Fatto'] = True
+                database.aggiorna_carriera(match_corrente['A'], match_corrente['S1A'], match_corrente['S1B'], match_corrente['S1A'] > match_corrente['S1B'], 1 if match_corrente['S1A']>match_corrente['S1B'] else 0, 1 if match_corrente['S1B']>match_corrente['S1A'] else 0)
+                database.aggiorna_carriera(match_corrente['B'], match_corrente['S1B'], match_corrente['S1A'], match_corrente['S1B'] > match_corrente['S1A'], 1 if match_corrente['S1B']>match_corrente['S1A'] else 0, 1 if match_corrente['S1A']>match_corrente['S1B'] else 0)
+                st.success("Risultato inviato con successo!")
                 st.rerun()
 
-    elif st.session_state.phase == "Eliminazione":
-        st.subheader("🔥 Fase Finale")
-        for i, p in enumerate(st.session_state.playoffs):
-            st.markdown(f"**{p['N']}**")
-            st.markdown(f'<div class="broadcast-card"><div>{p["A"]["name"]}</div><div class="score-box">{p["S1A"]}-{p["S1B"]}</div><div>{p["B"]["name"]}</div></div>', unsafe_allow_html=True)
-            if not p['Fatto']:
-                c1, c2, c3 = st.columns([1,1,1])
-                p['S1A'] = c1.number_input("Punti A", 0, 45, p['S1A'], key=f"pa{i}")
-                p['S1B'] = c2.number_input("Punti B", 0, 45, p['S1B'], key=f"pb{i}")
-                if c3.button("CONFERMA", key=f"pbtn{i}"):
-                    p['Fatto'] = True
-                    database.aggiorna_carriera(p['A'], p['S1A'], p['S1B'], p['S1A'] > p['S1B'], 1 if p['S1A']>p['S1B'] else 0, 1 if p['S1B']>p['S1A'] else 0)
-                    database.aggiorna_carriera(p['B'], p['S1B'], p['S1A'], p['S1B'] > p['S1A'], 1 if p['S1B']>p['S1A'] else 0, 1 if p['S1A']>p['S1B'] else 0)
-                    st.rerun()
+    st.divider()
+    
+    # --- LISTA TABELLONE MANUALE ---
+    st.subheader("📋 Riepilogo Tabellone")
+    lista_da_mostrare = st.session_state.matches if st.session_state.phase == "Gironi" else st.session_state.playoffs
+    
+    for i, m in enumerate(lista_da_mostrare):
+        status = "✅" if m['Fatto'] else "⏳"
+        with st.expander(f"{status} {m['A']['name']} vs {m['B']['name']} ({m['S1A']} - {m['S1B']})"):
+            c1, c2, c3 = st.columns([1,1,1])
+            m['S1A'] = c1.number_input("Punti A", 0, 100, m['S1A'], key=f"edit_a_{i}")
+            m['S1B'] = c2.number_input("Punti B", 0, 100, m['S1B'], key=f"edit_b_{i}")
+            if c3.button("SALVA MODIFICHE", key=f"save_{i}"):
+                st.rerun()
+
+    # Logica passaggio fasi
+    if st.session_state.phase == "Gironi" and all(m['Fatto'] for m in st.session_state.matches):
+        if st.button("🏆 PASSA AI PLAYOFF", use_container_width=True):
+            vincitori = [m['A'] if m['S1A'] > m['S1B'] else m['B'] for m in st.session_state.matches]
+            st.session_state.playoffs = [{"A": vincitori[0], "B": vincitori[1], "S1A":0, "S1B":0, "Fatto":False, "N":"FINALE"}]
+            st.session_state.phase = "Eliminazione"
+            st.rerun()
             
+    if st.session_state.phase == "Eliminazione":
+        for p in st.session_state.playoffs:
             if p['Fatto'] and p['N'] == "FINALE":
                 win = p['A'] if p['S1A'] > p['S1B'] else p['B']
                 st.balloons()
@@ -183,7 +212,6 @@ elif st.session_state.menu_attivo == "RANKING":
     
     rank_list = sorted(st.session_state.ranking_atleti.items(), key=lambda x: x[1], reverse=True)
     
-    # PODIO MODERNO (Solo se ci sono almeno 3 atleti)
     if len(rank_list) >= 3:
         p1, p2, p3 = rank_list[0], rank_list[1], rank_list[2]
         st.markdown(f"""
@@ -206,21 +234,16 @@ elif st.session_state.menu_attivo == "RANKING":
         </div>
         """, unsafe_allow_html=True)
 
-    st.write("### 👥 CLASSIFICA ATLETI (Seleziona un nome per i dettagli)")
-    
-    # Visualizzazione Tabellare Interattiva
+    st.write("### 👥 CLASSIFICA ATLETI")
     for i, (nome, punti) in enumerate(rank_list):
         if st.button(f"{i+1}º | {nome.upper()} — {punti} PT", key=f"rank_btn_{nome}", use_container_width=True):
             st.session_state.atleta_selezionato = nome
 
-    # SCHEDA CARRIERA (Mostrata quando si clicca un atleta)
     if 'atleta_selezionato' in st.session_state:
         nome_sel = st.session_state.atleta_selezionato
         s = st.session_state.atleti_stats.get(nome_sel, {})
-        
         st.markdown("---")
         st.subheader(f"👤 SCHEDA ATLETA: {nome_sel.upper()}")
-        
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("PUNTI TOTALI", st.session_state.ranking_atleti[nome_sel])
         c2.metric("MEDAGLIE 🥇", s.get('medaglie', 0))
@@ -235,9 +258,7 @@ elif st.session_state.menu_attivo == "RANKING":
                 res_color = "#00ff85" if log['esito'] == "Vittoria" else "#ff4b4b"
                 col_res.markdown(f"<span style='color:{res_color}; font-weight:bold;'>{log['esito']}</span>", unsafe_allow_html=True)
                 col_score.write(f"Risultato: {log['punteggio']} contro {log['avversario']}")
-        else:
-            st.info("Nessun match registrato per questo atleta.")
-            
-        if st.button("Chiudi Scheda Atleta"):
+        
+        if st.button("Chiudi Scheda"):
             del st.session_state.atleta_selezionato
             st.rerun()
