@@ -1,31 +1,26 @@
 import streamlit as st
 import random
 
-def generate_pro_score(limit):
-    a, b = 0, 0
-    while not ((a >= limit or b >= limit) and abs(a - b) >= 2):
-        if random.random() > 0.5: a += 1
-        else: b += 1
-    return a, b
+def create_calendar(teams):
+    matches = []
+    for i in range(len(teams)):
+        for j in range(i+1, len(teams)):
+            matches.append({"A": teams[i], "B": teams[j], "Fatto": False})
+    return matches
 
-def simulate_random_tournament():
-    phase = st.session_state['phase']
-    target = st.session_state['matches'] if phase == "Gironi" else st.session_state['playoffs']
-    limit = st.session_state['settings']['punti_set']
-    tie_limit = st.session_state['settings']['punti_tiebreak']
-
-    for m in target:
-        if not m.get('Fatto', False):
-            if m['B']['name'] == "BYE":
-                m['S1A'], m['S1B'], m['Fatto'] = limit, 0, True
-                continue
-            
-            m['S1A'], m['S1B'] = generate_pro_score(limit)
-            if st.session_state['match_type'] == "Best of 3":
-                m['S2A'], m['S2B'] = generate_pro_score(limit)
-                s_a = (1 if m['S1A'] > m['S1B'] else 0) + (1 if m['S2A'] > m['S2B'] else 0)
-                s_b = (1 if m['S1B'] > m['S1A'] else 0) + (1 if m['S2B'] > m['S2A'] else 0)
-                if s_a == 1 and s_b == 1:
-                    m['S3A'], m['S3B'] = generate_pro_score(tie_limit)
+def run_full_sim():
+    limit = st.session_state.settings['punti_set']
+    for m in st.session_state.matches:
+        if not m['Fatto']:
+            # Set 1 con scarto di 2
+            a = random.randint(18, limit+5)
+            b = a - 2 if a > limit else random.randint(10, a-1)
+            if random.random() > 0.5: a, b = b, a
+            m['S1A'], m['S1B'] = a, b
             m['Fatto'] = True
-    st.toast("🎲 Simulazione completata!")
+            
+            # Se ON, manda i dati al ranking
+            if st.session_state.sim_to_rank:
+                from database import aggiorna_statistiche_atleta
+                aggiorna_statistiche_atleta(m['A']['p1'], a, b, 1 if a>b else 0, 1 if b>a else 0, a>b)
+                aggiorna_statistiche_atleta(m['B']['p1'], b, a, 1 if b>a else 0, 1 if a>b else 0, b>a)
