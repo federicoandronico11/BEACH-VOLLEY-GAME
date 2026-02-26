@@ -121,10 +121,6 @@ elif st.session_state.menu_attivo == "SETUP":
             st.session_state.menu_attivo = "LIVE"
             st.rerun()
 
-    st.markdown("### 📋 Squadre Iscritte")
-    for t in st.session_state.teams:
-        st.caption(f"✅ {t['name']} ({t['p1']} + {t['p2']})")
-
 # --- SEZIONE LIVE ---
 elif st.session_state.menu_attivo == "LIVE":
     if st.session_state.phase == "Gironi":
@@ -149,14 +145,10 @@ elif st.session_state.menu_attivo == "LIVE":
         
         if all(m['Fatto'] for m in st.session_state.matches):
             if st.button("🏆 PASSA AI PLAYOFF"):
-                # Filtra i BYE dai vincitori per i playoff reali
                 vincitori = []
                 for m in st.session_state.matches:
                     vincitori.append(m['A'] if m['S1A'] > m['S1B'] else m['B'])
-                
-                st.session_state.playoffs = [
-                    {"A": vincitori[0], "B": vincitori[1], "S1A":0, "S1B":0, "Fatto":False, "N":"FINALE"}
-                ]
+                st.session_state.playoffs = [{"A": vincitori[0], "B": vincitori[1], "S1A":0, "S1B":0, "Fatto":False, "N":"FINALE"}]
                 st.session_state.phase = "Eliminazione"
                 st.rerun()
 
@@ -165,7 +157,6 @@ elif st.session_state.menu_attivo == "LIVE":
         for i, p in enumerate(st.session_state.playoffs):
             st.markdown(f"**{p['N']}**")
             st.markdown(f'<div class="broadcast-card"><div>{p["A"]["name"]}</div><div class="score-box">{p["S1A"]}-{p["S1B"]}</div><div>{p["B"]["name"]}</div></div>', unsafe_allow_html=True)
-            
             if not p['Fatto']:
                 c1, c2, c3 = st.columns([1,1,1])
                 p['S1A'] = c1.number_input("Punti A", 0, 45, p['S1A'], key=f"pa{i}")
@@ -188,7 +179,65 @@ elif st.session_state.menu_attivo == "LIVE":
 
 # --- SEZIONE RANKING ---
 elif st.session_state.menu_attivo == "RANKING":
-    st.title("🏆 HALL OF FAME")
-    rank = sorted(st.session_state.ranking_atleti.items(), key=lambda x: x[1], reverse=True)
-    for i, (n, p) in enumerate(rank):
-        st.markdown(f"### {i+1}. {n.upper()} - {p} PT")
+    st.markdown("<h1 style='text-align: center; color: #00ff85; font-family: Oswald;'>🏆 CLUB HOUSE - HALL OF FAME</h1>", unsafe_allow_html=True)
+    
+    rank_list = sorted(st.session_state.ranking_atleti.items(), key=lambda x: x[1], reverse=True)
+    
+    # PODIO MODERNO (Solo se ci sono almeno 3 atleti)
+    if len(rank_list) >= 3:
+        p1, p2, p3 = rank_list[0], rank_list[1], rank_list[2]
+        st.markdown(f"""
+        <div class="podium-container">
+            <div class="podium-step second">
+                <div class="podium-rank">2</div>
+                <div class="podium-name">{p2[0]}</div>
+                <div style="color:#00ff85">{p2[1]} PT</div>
+            </div>
+            <div class="podium-step first">
+                <div class="podium-rank">1</div>
+                <div class="podium-name">{p1[0]}</div>
+                <div style="color:#00ff85">{p1[1]} PT</div>
+            </div>
+            <div class="podium-step third">
+                <div class="podium-rank">3</div>
+                <div class="podium-name">{p3[0]}</div>
+                <div style="color:#00ff85">{p3[1]} PT</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("### 👥 CLASSIFICA ATLETI (Seleziona un nome per i dettagli)")
+    
+    # Visualizzazione Tabellare Interattiva
+    for i, (nome, punti) in enumerate(rank_list):
+        if st.button(f"{i+1}º | {nome.upper()} — {punti} PT", key=f"rank_btn_{nome}", use_container_width=True):
+            st.session_state.atleta_selezionato = nome
+
+    # SCHEDA CARRIERA (Mostrata quando si clicca un atleta)
+    if 'atleta_selezionato' in st.session_state:
+        nome_sel = st.session_state.atleta_selezionato
+        s = st.session_state.atleti_stats.get(nome_sel, {})
+        
+        st.markdown("---")
+        st.subheader(f"👤 SCHEDA ATLETA: {nome_sel.upper()}")
+        
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("PUNTI TOTALI", st.session_state.ranking_atleti[nome_sel])
+        c2.metric("MEDAGLIE 🥇", s.get('medaglie', 0))
+        c3.metric("SET VINTI", s.get('sv', 0))
+        c4.metric("SET PERSI", s.get('sp', 0))
+        
+        st.markdown("#### 📜 ULTIME GARE DISPUTATE")
+        logs = s.get('match_logs', [])
+        if logs:
+            for log in reversed(logs):
+                col_res, col_score = st.columns([1,4])
+                res_color = "#00ff85" if log['esito'] == "Vittoria" else "#ff4b4b"
+                col_res.markdown(f"<span style='color:{res_color}; font-weight:bold;'>{log['esito']}</span>", unsafe_allow_html=True)
+                col_score.write(f"Risultato: {log['punteggio']} contro {log['avversario']}")
+        else:
+            st.info("Nessun match registrato per questo atleta.")
+            
+        if st.button("Chiudi Scheda Atleta"):
+            del st.session_state.atleta_selezionato
+            st.rerun()
