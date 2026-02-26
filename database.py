@@ -47,3 +47,17 @@ def registra_risultato_completo(match):
 def esporta_storico():
     if not st.session_state.storico_incassi: return None
     return pd.DataFrame(st.session_state.storico_incassi).to_csv(index=False)
+def archivia_torneo_completo(vincitore_name, classifica_finale_nomi):
+    """Salva il torneo nell'albo d'oro e assegna i punti ranking"""
+    incasso_tot = sum(t['quota'] for t in st.session_state.teams if t.get('pagato', False))
+    nuovo_torneo = {
+        "data": datetime.now().strftime("%d/%m/%Y"),
+        "vincitore": vincitore_name,
+        "partecipanti": len(st.session_state.teams),
+        "incasso": incasso_tot
+    }
+    st.session_state.albo_oro.append(nuovo_torneo)
+    st.session_state.storico_incassi.append(nuovo_torneo)
+    
+    # Assegnazione punti proporzionale (1° prende più punti, a scalare)
+    assegna_punti_ranking(classifica_finale_nomi)
