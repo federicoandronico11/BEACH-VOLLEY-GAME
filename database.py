@@ -1,23 +1,25 @@
 import streamlit as st
 
 def init_session():
-    keys = {
-        'db_atleti': [], 
-        'ranking_atleti': {}, 
-        'atleti_stats': {},
-        'teams': [], 
-        'matches': [], 
-        'playoffs': [], 
-        'albo_oro': [],
-        'phase': "Setup", 
-        'menu_attivo': "HUB",
-        'settings': {"punti_set": 21, "match_type": "Set Unico", "formato": "Gironi + Eliminazione"}
-    }
-    for key, val in keys.items():
-        if key not in st.session_state: st.session_state[key] = val
+    # Inizializza tutti i contenitori senza sovrascriverli se esistono già
+    if 'db_atleti' not in st.session_state: st.session_state.db_atleti = []
+    if 'ranking_atleti' not in st.session_state: st.session_state.ranking_atleti = {}
+    if 'atleti_stats' not in st.session_state: st.session_state.atleti_stats = {}
+    if 'teams' not in st.session_state: st.session_state.teams = []
+    if 'matches' not in st.session_state: st.session_state.matches = []
+    if 'playoffs' not in st.session_state: st.session_state.playoffs = []
+    if 'phase' not in st.session_state: st.session_state.phase = "Setup"
+    if 'menu_attivo' not in st.session_state: st.session_state.menu_attivo = "HUB"
+    if 'settings' not in st.session_state:
+        st.session_state.settings = {
+            "punti_set": 21, 
+            "match_type": "Set Unico", 
+            "formato": "Gironi + Eliminazione",
+            "punti_tiebreak": 15
+        }
 
 def aggiorna_carriera(team, pf, ps, win, sv, sp):
-    """Aggiorna i dati analitici di ogni atleta del team dopo un match"""
+    """Aggiorna i dati analitici di ogni atleta del team"""
     for atleta in [team['p1'], team['p2']]:
         if atleta not in st.session_state.atleti_stats:
             st.session_state.atleti_stats[atleta] = {
