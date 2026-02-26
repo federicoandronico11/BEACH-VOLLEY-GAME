@@ -98,6 +98,53 @@ elif st.session_state.menu_attivo == "SETUP":
                 st.error("Inserisci i nomi di entrambi gli atleti!")
 
     # AZIONI POST-ISCRIZIONE (Fuori dal form)
+    # --- LOGICA GENERAZIONE CON BYE ---
+    if len(st.session_state.teams) >= 2:
+        st.write("---")
+        if st.button("🚀 GENERA TABELLONE PRO (INC. BYE)", type="primary", use_container_width=True):
+            teams_list = st.session_state.teams.copy()
+            
+            # Calcolo squadre mancanti per arrivare a potenza di 2 (4, 8, 16...)
+            n = len(teams_list)
+            prossima_potenza_2 = 2**(n - 1).bit_length() if n > 2 else 2
+            if n < 4: prossima_potenza_2 = 4 # Minimo semifinale
+            
+            num_bye = prossima_potenza_2 - n
+            
+            # Aggiunta squadre BYE (Fantasma)
+            for i in range(num_bye):
+                teams_list.append({
+                    "name": "BYE (FREE WIN)", 
+                    "p1": "SISTEMA", "p2": "SISTEMA", 
+                    "is_bye": True, "quota": 0, "pagato": True
+                })
+            
+            random.shuffle(teams_list) # Mischia per equità
+            
+            st.session_state.matches = []
+            # Generazione Match con gestione automatica Vittoria a Tavolino
+            for i in range(0, len(teams_list), 2):
+                t_a = teams_list[i]
+                t_b = teams_list[i+1]
+                
+                match_entry = {
+                    "A": t_a, "B": t_b,
+                    "S1A": 0, "S1B": 0,
+                    "Fatto": False,
+                    "Note": ""
+                }
+                
+                # Se una delle due è un BYE, chiudi subito il match
+                if t_a.get("is_bye"):
+                    match_entry.update({"S1A": 0, "S1B": st.session_state.settings['punti_set'], "Fatto": True, "Note": f"Vittoria a tavolino per {t_b['name']}"})
+                elif t_b.get("is_bye"):
+                    match_entry.update({"S1A": st.session_state.settings['punti_set'], "S1B": 0, "Fatto": True, "Note": f"Vittoria a tavolino per {t_a['name']}"})
+                
+                st.session_state.matches.append(match_entry)
+            
+            st.session_state.phase = "Gironi" # O Eliminazione Diretta in base al formato
+            st.session_state.menu_attivo = "LIVE"
+            st.rerun()
     if len(st.session_state.teams) >= 2:
         st.write("---")
         if st.button("🚀 GENERA TABELLONE E INIZIA MATCH DAY", type="primary", use_container_width=True):
