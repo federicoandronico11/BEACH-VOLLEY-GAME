@@ -5,84 +5,52 @@ def apply_pro_theme():
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&family=Oswald:wght@500;700&display=swap');
 
-    /* Sfondo e Base */
     .stApp {
-        background: radial-gradient(circle at top right, #1a1a2e, #0f0f0f);
+        background: radial-gradient(circle at top right, #12121e, #050505);
         color: #ffffff;
         font-family: 'Exo 2', sans-serif;
     }
 
-    /* Menu a Mattonelle FC 26 Style */
-    .fc-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        padding: 20px;
-    }
-
+    /* Menu Hub FC 26 */
     .fc-tile {
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        padding: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 40px 20px;
         transition: all 0.3s ease;
-        cursor: pointer;
         text-align: center;
-        position: relative;
-        overflow: hidden;
+        cursor: pointer;
     }
-
     .fc-tile:hover {
-        background: rgba(0, 255, 133, 0.1); /* Verde Neon tipico FC */
+        background: rgba(0, 255, 133, 0.05);
         border-color: #00ff85;
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 255, 133, 0.2);
+        transform: scale(1.02);
     }
 
-    .fc-tile h2 {
-        font-family: 'Oswald', sans-serif;
-        text-transform: uppercase;
-        font-size: 1.8rem;
-        margin-bottom: 10px;
-        color: #00ff85;
-    }
-
-    /* Card Squadre Match Day */
-    .match-card {
-        background: linear-gradient(135deg, rgba(30,30,30,0.9) 0%, rgba(10,10,10,0.9) 100%);
-        border-left: 8px solid #00ff85;
-        border-radius: 10px;
+    /* Card Match Day */
+    .broadcast-card {
+        background: #1a1a1a;
+        border-bottom: 4px solid #00ff85;
         padding: 20px;
         margin-bottom: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
+    .team-red { color: #ff4b4b; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; }
+    .team-blue { color: #0072ff; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; }
+    .score-box { background: #000; padding: 10px 25px; font-size: 2rem; border-radius: 5px; font-family: 'monospace'; color: #00ff85; }
 
-    .score-badge {
-        background: #00ff85;
-        color: #000;
-        font-weight: 900;
-        padding: 5px 15px;
-        border-radius: 5px;
-        font-size: 1.5rem;
-    }
-
-    /* Bottone Professionale */
+    /* Bottoni FC Style */
     .stButton>button {
         background: #00ff85 !important;
         color: #000 !important;
         font-weight: 900 !important;
         text-transform: uppercase !important;
-        border-radius: 0px !important; /* Taglio netto FC Style */
+        border-radius: 0px !important;
         border: none !important;
-        padding: 15px 30px !important;
-        width: 100%;
+        transition: 0.2s;
     }
-    
-    .stButton>button:hover {
-        background: #ffffff !important;
-    }
+    .stButton>button:hover { background: #ffffff !important; transform: skew(-5deg); }
     </style>
     """, unsafe_allow_html=True)
