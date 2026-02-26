@@ -103,3 +103,48 @@ elif nav == "📺 TABELLONE LIVE":
 # 3. RANKING & CARRIERA
 elif nav == "🏆 RANKING & CARRIERA":
     ranking_page.render_all()
+
+# --- LOGICA DI NAVIGAZIONE FASI (Sostituisci il fondo di app.py) ---
+
+if nav == "⚙️ SETUP TORNEO":
+    if st.session_state.phase == "Setup":
+        # ... (Tutto il codice del setup che abbiamo scritto sopra: impostazioni e iscrizione)
+        
+        # IL TASTO CORRETTO:
+        if len(st.session_state.teams) >= 2:
+            if st.button("🚀 GENERA TABELLONE E INIZIA", type="primary", use_container_width=True):
+                st.session_state.matches = simulator.create_calendar(st.session_state.teams)
+                st.session_state.phase = "Gironi" # Cambia fase
+                st.rerun() # Forza il riavvio per leggere la nuova fase
+    else:
+        st.info(f"Torneo in corso: Fase {st.session_state.phase}")
+        if st.button("🔄 Reset Totale Torneo"):
+            st.session_state.phase = "Setup"
+            st.session_state.teams = []
+            st.session_state.matches = []
+            st.rerun()
+
+elif nav == "📺 TABELLONE LIVE":
+    if st.session_state.phase == "Setup":
+        st.warning("⚠️ Il torneo non è ancora iniziato. Configura le squadre nel Setup.")
+    else:
+        st.header(f"📺 Dashboard Live - {st.session_state.phase}")
+        
+        # QUI VA IL CODICE DEI MATCH (Quello con le card DAZN)
+        # Inseriamo un filtro per vedere solo i match non conclusi o tutti
+        mostra_tutti = st.toggle("Mostra anche match conclusi", value=True)
+        
+        for i, m in enumerate(st.session_state.matches):
+            if not m['Fatto'] or mostra_tutti:
+                # Chiamiamo la funzione per disegnare la card (render_match_card)
+                # (Assicurati di avere questa logica o inseriscila qui sotto)
+                with st.container():
+                    st.markdown(f"""
+                    <div class="dazn-match-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="team-red">🔴 {m['A']['name']}</div>
+                            <div class="score-badge">{m.get('S1A',0)} - {m.get('S1B',0)}</div>
+                            <div class="team-blue">🔵 {m['B']['name']}</div>
+                        </div>
+                    </div>""", unsafe_allow_html=True)
+                    # Input punti e tasto conferma qui...
