@@ -174,11 +174,15 @@ elif st.session_state.menu_attivo == "LIVE":
             c1, c2, c3 = st.columns([1,1,1])
             m['S1A'] = c1.number_input("Punti A", 0, 45, m['S1A'], key=f"s1a{i}")
             m['S1B'] = c2.number_input("Punti B", 0, 45, m['S1B'], key=f"s1b{i}")
-            if c3.button("CONFERMA", key=f"btn{i}"):
-                m['Fatto'] = True
-                database.aggiorna_carriera(m['A'], m['S1A'], m['S1B'], m['S1A'] > m['S1B'], 1 if m['S1A']>m['S1B'] else 0, 1 if m['S1B']>m['S1A'] else 0)
-                database.aggiorna_carriera(m['B'], m['S1B'], m['S1A'], m['S1B'] > m['S1A'], 1 if m['S1B']>m['S1A'] else 0, 1 if m['S1A']>m['S1B'] else 0)
-                st.rerun()
+            # Cerca il pulsante "CONFERMA" nel file app.py (sezione LIVE) e modificalo così:
+if c3.button("CONFERMA", key=f"btn{i}"):
+    m['Fatto'] = True
+    # Registra i dati solo se NON è una squadra BYE
+    if not m['A'].get('is_bye'):
+        database.aggiorna_carriera(m['A'], m['S1A'], m['S1B'], m['S1A'] > m['S1B'], 1 if m['S1A']>m['S1B'] else 0, 1 if m['S1B']>m['S1A'] else 0)
+    if not m['B'].get('is_bye'):
+        database.aggiorna_carriera(m['B'], m['S1B'], m['S1A'], m['S1B'] > m['S1A'], 1 if m['S1B']>m['S1A'] else 0, 1 if m['S1A']>m['S1B'] else 0)
+    st.rerun()
         
         if all(m['Fatto'] for m in st.session_state.matches) and st.button("🏆 PASSA AI PLAYOFF"):
             cl = sorted(st.session_state.teams, key=lambda t: sum(1 for m in st.session_state.matches if (m['A']['name']==t['name'] and m['S1A']>m['S1B'])), reverse=True)
