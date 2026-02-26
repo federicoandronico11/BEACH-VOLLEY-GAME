@@ -40,36 +40,84 @@ if st.session_state.menu_attivo == "HUB":
 
 # --- SEZIONE SETUP ---
 elif st.session_state.menu_attivo == "SETUP":
-    st.header("⚙️ Configurazione")
+    st.markdown("<h2 style='color: #00ff85; font-family: Oswald;'>⚙️ CONFIGURAZIONE TORNEO</h2>", unsafe_allow_html=True)
+    
     col_cfg, col_pay = st.columns([2,1])
     with col_cfg:
-        st.session_state.settings['match_type'] = st.radio("Formato Match", ["Set Unico", "Best of 3"], horizontal=True)
-        st.session_state.settings['punti_set'] = st.slider("Punti Set", 11, 30, 21)
+        st.session_state.settings['match_type'] = st.radio("FORMATO MATCH", ["Set Unico", "Best of 3"], horizontal=True, key="cfg_match_type")
+        st.session_state.settings['punti_set'] = st.slider("PUNTI VITTORIA SET", 11, 30, st.session_state.settings['punti_set'], key="cfg_punti_set")
     with col_pay:
         incasso = sum(t['quota'] for t in st.session_state.teams if t['pagato'])
-        st.metric("INCASSO TOTALE", f"{incasso}€", f"{len(st.session_state.teams)} Team")
+        st.metric("INCASSO LIVE", f"{incasso}€", f"{len(st.session_state.teams)} Team")
 
     st.divider()
-    with st.form("iscrizione_pro", clear_on_submit=True):
-        c1, c2, c3 = st.columns([2, 2, 1])
-        at1 = c1.selectbox("Atleta 1", [""] + st.session_state.db_atleti); at1_new = c1.text_input("...o Nuovo Nome")
-        at2 = c2.selectbox("Atleta 2", [""] + st.session_state.db_atleti); at2_new = c2.text_input("...o Nuovo Nome")
-        q_val = c3.number_input("Quota €", 10); q_on = c3.toggle("Pagato", value=True)
-        if st.form_submit_button("REGISTRA SQUADRA"):
-            p1 = at1_new if at1_new else at1; p2 = at2_new if at2_new else at2
-            if p1 and p2:
-                st.session_state.teams.append({"name": f"{p1[:3]}-{p2[:3]}".upper(), "p1": p1, "p2": p2, "quota": q_val, "pagato": q_on})
-                if p1 not in st.session_state.db_atleti: st.session_state.db_atleti.append(p1)
-                if p2 not in st.session_state.db_atleti: st.session_state.db_atleti.append(p2)
-                st.rerun()
+    st.subheader("📝 ISCRIZIONE SQUADRA")
     
-    if len(st.session_state.teams) >= 2 and st.button("🚀 GENERA TABELLONE", type="primary", use_container_width=True):
-        st.session_state.matches = []
-        for i in range(len(st.session_state.teams)):
-            for j in range(i+1, len(st.session_state.teams)):
-                st.session_state.matches.append({"A": st.session_state.teams[i], "B": st.session_state.teams[j], "S1A":0, "S1B":0, "Fatto": False})
-        st.session_state.phase = "Gironi"; st.session_state.menu_attivo = "LIVE"; st.rerun()
+    # Il FORM deve contenere tutti i widget e finire SEMPRE con un form_submit_button
+    with st.form("iscrizione_squadre_form", clear_on_submit=True):
+        c1, c2, c3 = st.columns([2, 2, 1])
+        
+        with c1:
+            at1 = st.selectbox("Atleta 1 (Esistente)", [""] + st.session_state.db_atleti, key="sel_at1")
+            at1_new = st.text_input("...o Nuovo Nome 1", key="txt_at1")
+        
+        with c2:
+            at2 = st.selectbox("Atleta 2 (Esistente)", [""] + st.session_state.db_atleti, key="sel_at2")
+            at2_new = st.text_input("...o Nuovo Nome 2", key="txt_at2")
+            
+        with c3:
+            q_val = st.number_input("Quota €", 0, 100, 10, key="num_quota")
+            q_on = st.toggle("Pagato", value=True, key="tgl_pagato")
+            
+        # IL PULSANTE DI INVIO (Obbligatorio dentro il form)
+        submit_team = st.form_submit_button("REGISTRA SQUADRA IN LISTA")
+        
+        if submit_team:
+            p1 = at1_new if at1_new else at1
+            p2 = at2_new if at2_new else at2
+            
+            if p1 and p2 and p1 != p2:
+                # Creazione entry team
+                new_team = {
+                    "name": f"{p1[:3]}-{p2[:3]}".upper(),
+                    "p1": p1,
+                    "p2": p2,
+                    "quota": q_val,
+                    "pagato": q_on
+                }
+                st.session_state.teams.append(new_team)
+                
+                # Aggiornamento database atleti unico
+                for p in [p1, p2]:
+                    if p not in st.session_state.db_atleti:
+                        st.session_state.db_atleti.append(p)
+                st.rerun()
+            elif p1 == p2 and p1 != "":
+                st.error("Un atleta non può giocare con se stesso!")
+            else:
+                st.error("Inserisci i nomi di entrambi gli atleti!")
 
+    # AZIONI POST-ISCRIZIONE (Fuori dal form)
+    if len(st.session_state.teams) >= 2:
+        st.write("---")
+        if st.button("🚀 GENERA TABELLONE E INIZIA MATCH DAY", type="primary", use_container_width=True):
+            st.session_state.matches = []
+            # Generazione Round Robin (Tutti contro tutti)
+            for i in range(len(st.session_state.teams)):
+                for j in range(i+1, len(st.session_state.teams)):
+                    st.session_state.matches.append({
+                        "A": st.session_state.teams[i], 
+                        "B": st.session_state.teams[j],
+                        "S1A": 0, "S1B": 0, 
+                        "Fatto": False
+                    })
+            st.session_state.phase = "Gironi"
+            st.session_state.menu_attivo = "LIVE"
+            st.rerun()
+
+    st.markdown("### 📋 Squadre Attualmente Iscritte")
+    for t in st.session_state.teams:
+        st.caption(f"✅ {t['name']} ({t['p1']} + {t['p2']}) - {t['quota']}€ {'PAGATO' if t['pagato'] else 'DA PAGARE'}")
 # --- SEZIONE LIVE ---
 elif st.session_state.menu_attivo == "LIVE":
     if st.session_state.phase == "Gironi":
