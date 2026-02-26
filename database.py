@@ -10,18 +10,31 @@ def init_session():
     for key, val in keys.items():
         if key not in st.session_state: st.session_state[key] = val
 
-def aggiorna_carriera(team, pf, ps, win):
-    """Aggiorna i dati storici di ogni singolo atleta del team"""
+def aggiorna_carriera(team, pf, ps, win, sv, sp):
+    """
+    pf: punti fatti nel match
+    ps: punti subiti nel match
+    win: True/False (vittoria match)
+    sv: set vinti nel match
+    sp: set persi nel match
+    """
     for atleta in [team['p1'], team['p2']]:
         if atleta not in st.session_state.atleti_stats:
-            st.session_state.atleti_stats[atleta] = {"pf":0, "ps":0, "v":0, "p":0, "history":[]}
+            st.session_state.atleti_stats[atleta] = {
+                "pf":0, "ps":0, "sv":0, "sp":0, "v":0, "p":0, 
+                "medaglie": 0, "history": []
+            }
         
         s = st.session_state.atleti_stats[atleta]
         s['pf'] += pf
         s['ps'] += ps
-        if win: s['v'] += 1
-        else: s['p'] += 1
-        s['history'].append(pf - ps)
+        s['sv'] += sv
+        s['sp'] += sp
+        if win: 
+            s['v'] += 1
+            st.session_state.ranking_atleti[atleta] = st.session_state.ranking_atleti.get(atleta, 0) + 10
+        else: 
+            s['p'] += 1
+            st.session_state.ranking_atleti[atleta] = st.session_state.ranking_atleti.get(atleta, 0) + 2
         
-        # Aggiorna Punti Ranking (Vittoria = 10pt, Pareggio/Sconfitta = 2pt)
-        st.session_state.ranking_atleti[atleta] = st.session_state.ranking_atleti.get(atleta, 0) + (10 if win else 2)
+        s['history'].append(pf - ps)
