@@ -1,32 +1,16 @@
 import streamlit as st
 
 def init_session():
-    # Dati Persistenti (Atleti e Ranking)
-    if 'db_atleti' not in st.session_state: st.session_state.db_atleti = []
-    if 'ranking_atleti' not in st.session_state: st.session_state.ranking_atleti = {}
-    if 'atleti_stats' not in st.session_state: st.session_state.atleti_stats = {}
-    
-    # Stato del Torneo (Temporaneo)
-    if 'teams' not in st.session_state: st.session_state.teams = []
-    if 'matches' not in st.session_state: st.session_state.matches = []
-    if 'playoffs' not in st.session_state: st.session_state.playoffs = []
-    if 'phase' not in st.session_state: st.session_state.phase = "Setup"
-    
-    # Impostazioni
-    if 'settings' not in st.session_state:
-        st.session_state.settings = {
-            "punti_set": 21,
-            "match_type": "Set Unico",
-            "formato": "Gironi + Playoff"
-        }
+    keys = {
+        'db_atleti': [], 'ranking_atleti': {}, 'atleti_stats': {},
+        'teams': [], 'matches': [], 'playoffs': [], 'storico_tornei': [],
+        'phase': "Setup", 'menu_attivo': "HUB",
+        'settings': {"punti_set": 21, "match_type": "Set Unico", "formato": "Gironi + Eliminazione", "richiesta_nome": True}
+    }
+    for key, val in keys.items():
+        if key not in st.session_state: st.session_state[key] = val
 
-def assegna_punti_ranking(classifica_finale_nomi):
-    """Assegna punti: 1° 100pt, 2° 70pt, 3° 50pt, altri 20pt (Esempio Pro)"""
-    premi = {0: 100, 1: 70, 2: 50}
-    for i, team_name in enumerate(classifica_finale_nomi):
-        pts = premi.get(i, 20)
-        # Trova gli atleti del team
-        team = next((t for t in st.session_state.teams if t['name'] == team_name), None)
-        if team:
-            for a in [team['p1'], team['p2']]:
-                st.session_state.ranking_atleti[a] = st.session_state.ranking_atleti.get(a, 0) + pts
+def registra_vittoria(team_name, pf, ps, sv, sp):
+    # Logica semplificata per aggiornare statistiche nel ranking
+    # Verrà chiamata alla conferma di ogni match
+    pass
