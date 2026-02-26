@@ -212,5 +212,34 @@ def apply_pro_theme():
         background: rgba(255, 255, 255, 0.03); border-left: 4px solid #00ff85; padding: 15px; margin-bottom: 8px;
         border-radius: 0 4px 4px 0; display: flex; justify-content: space-between; align-items: center;
     }
+
+    /* --- STILI AGGIUNTIVI PER IL NUOVO TABELLONE LIVE --- */
+    .main-container-sb { background-color: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid #333; }
+    
+    .team-red-bg { 
+        background: linear-gradient(135deg, #ff4b4b, #a50000); 
+        padding: 30px; border-radius: 15px; text-align: center; color: white; 
+        border-bottom: 5px solid #ff0000; box-shadow: 0 10px 20px rgba(255,0,0,0.2);
+    }
+    
+    .team-blue-bg { 
+        background: linear-gradient(135deg, #0072ff, #003a80); 
+        padding: 30px; border-radius: 15px; text-align: center; color: white; 
+        border-bottom: 5px solid #0055ff; box-shadow: 0 10px 20px rgba(0,114,255,0.2);
+    }
+    
+    .score-val-big { 
+        font-size: 80px; font-weight: 900; font-family: 'monospace'; 
+        line-height: 1; margin: 10px 0; text-shadow: 2px 2px 0px black;
+    }
+    
+    .ball-icon-live { font-size: 35px; color: #fbff00; text-shadow: 0 0 15px #fbff00; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+    .timer-box-live { 
+        font-size: 25px; text-align: center; color: #00ffc3; 
+        font-family: 'monospace'; padding: 10px; border: 1px solid #00ffc3; 
+        border-radius: 10px; margin-bottom: 20px; background: rgba(0,255,195,0.05);
+    }
     </style>
     """, unsafe_allow_html=True)
