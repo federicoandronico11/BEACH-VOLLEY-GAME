@@ -4,6 +4,38 @@ import database, ui_components, random
 st.set_page_config(page_title="Z-SKILLS 26 PRO", layout="wide")
 database.init_session()
 ui_components.apply_pro_theme()
+# --- SIDEBAR: LIVE RANKING & CARRIERA ---
+with st.sidebar:
+    st.markdown("<h2 style='color: #00ff85; font-family: Oswald;'>🏆 LIVE RANKING</h2>", unsafe_allow_html=True)
+    
+    # Ordina atleti per punti ranking
+    if st.session_state.ranking_atleti:
+        sorted_rank = sorted(st.session_state.ranking_atleti.items(), key=lambda x: x[1], reverse=True)
+        
+        for i, (nome, punti) in enumerate(sorted_rank):
+            # Tile cliccabile per ogni atleta
+            with st.expander(f"{i+1}. {nome} - {punti} PT"):
+                stats = st.session_state.atleti_stats.get(nome, {})
+                if stats:
+                    # Calcolo Quozienti
+                    q_punti = round(stats['pf'] / max(1, stats['ps']), 3)
+                    q_set = round(stats['sv'] / max(1, stats['sp']), 2)
+                    
+                    st.markdown(f"**🏅 MEDAGLIE:** {'🥇' * stats['medaglie']}")
+                    st.divider()
+                    
+                    col_a, col_b = st.columns(2)
+                    col_a.metric("SET V/P", f"{stats['sv']}/{stats['sp']}")
+                    col_b.metric("Q. SET", q_set)
+                    
+                    col_c, col_d = st.columns(2)
+                    col_c.metric("PUNTI F/S", f"{stats['pf']}/{stats['ps']}")
+                    col_d.metric("Q. PUNTI", q_punti)
+                    
+                    st.write("📈 Trend Diff. Punti:")
+                    st.line_chart(stats['history'], height=100)
+    else:
+        st.info("Nessun dato nel ranking.")
 
 # --- NAVBAR HUB ---
 if st.session_state.menu_attivo != "HUB":
