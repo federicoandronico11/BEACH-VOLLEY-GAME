@@ -1,13 +1,15 @@
 import streamlit as st
-import database, ui_components, random
+import database, ui_components, random, time
 
 st.set_page_config(page_title="Z-SKILLS CUP 26", layout="wide")
 database.init_session()
 ui_components.apply_pro_theme()
 
-# Inizializzazione stato battuta se non esiste
+# Inizializzazione stato battuta e timer se non esistono
 if 'service_turn' not in st.session_state:
     st.session_state.service_turn = "A"
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = None
 
 # --- SIDEBAR: LIVE RANKING & CARRIERA ---
 with st.sidebar:
@@ -135,41 +137,72 @@ elif st.session_state.menu_attivo == "LIVE":
         match_corrente = next((p for p in st.session_state.playoffs if not p['Fatto']), None)
 
     if match_corrente:
-        # --- BLOCCO SEGNA PUNTI LIVE ---
-        with st.container():
-            st.markdown('<div class="broadcast-card" style="justify-content: space-around;">', unsafe_allow_html=True)
-            
-            col_a, col_mid, col_b = st.columns([2, 1, 2])
-            
-            with col_a:
-                serv_a = '<span class="service-indicator"></span>' if st.session_state.service_turn == "A" else ""
-                st.markdown(f"<div class='team-red'>{serv_a} {match_corrente['A']['name']}</div>", unsafe_allow_html=True)
-                ca1, ca2 = st.columns(2)
-                if ca1.button("➕", key="p_plus_a", help="+1 Punto A"): match_corrente['S1A'] += 1; st.rerun()
-                if ca2.button("➖", key="p_minus_a"): match_corrente['S1A'] = max(0, match_corrente['S1A'] - 1); st.rerun()
-                
-            with col_mid:
-                st.markdown(f"<div class='score-box' style='text-align:center;'>{match_corrente['S1A']}-{match_corrente['S1B']}</div>", unsafe_allow_html=True)
-                if st.button("🔄 SERVICE"):
-                    st.session_state.service_turn = "B" if st.session_state.service_turn == "A" else "A"
-                    st.rerun()
-
-            with col_b:
-                serv_b = '<span class="service-indicator"></span>' if st.session_state.service_turn == "B" else ""
-                st.markdown(f"<div class='team-blue' style='text-align:right;'>{match_corrente['B']['name']} {serv_b}</div>", unsafe_allow_html=True)
-                cb1, cb2 = st.columns(2)
-                if cb1.button("➕", key="p_plus_b", help="+1 Punto B"): match_corrente['S1B'] += 1; st.rerun()
-                if cb2.button("➖", key="p_minus_b"): match_corrente['S1B'] = max(0, match_corrente['S1B'] - 1); st.rerun()
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Pulsante di Sincronizzazione / Chiusura Match
-            if st.button("🚀 COMUNICA RISULTATO AL TABELLONE", type="primary"):
-                match_corrente['Fatto'] = True
-                database.aggiorna_carriera(match_corrente['A'], match_corrente['S1A'], match_corrente['S1B'], match_corrente['S1A'] > match_corrente['S1B'], 1 if match_corrente['S1A']>match_corrente['S1B'] else 0, 1 if match_corrente['S1B']>match_corrente['S1A'] else 0)
-                database.aggiorna_carriera(match_corrente['B'], match_corrente['S1B'], match_corrente['S1A'], match_corrente['S1B'] > match_corrente['S1A'], 1 if match_corrente['S1B']>match_corrente['S1A'] else 0, 1 if match_corrente['S1A']>match_corrente['S1B'] else 0)
-                st.success("Risultato inviato con successo!")
+        # --- BLOCCO TIMER ---
+        if st.session_state.start_time is None:
+            if st.button("⏱️ AVVIA MATCH LIVE", use_container_width=True):
+                st.session_state.start_time = time.time()
                 st.rerun()
+            elapsed = "00:00"
+        else:
+            diff = int(time.time() - st.session_state.start_time)
+            elapsed = f"{diff // 60:02d}:{diff % 60:02d}"
+
+        st.markdown(f"<div class='timer-box-live'>LIVE CLOCK: {elapsed}</div>", unsafe_allow_html=True)
+
+        # --- NUOVO TABELLONE GRAFICO ---
+        st.markdown("<div class='main-container-sb'>", unsafe_allow_html=True)
+        col1, col_mid, col2 = st.columns([2, 0.5, 2])
+
+        with col1:
+            serv_a = "<span class='ball-icon-live'>🏐</span>" if st.session_state.service_turn == 'A' else ""
+            st.markdown(f"""
+                <div class='team-red-bg'>
+                    <h3>{match_corrente['A']['name']}</h3>
+                    <div class='score-val-big'>{match_corrente['S1A']}</div>
+                    <div style='height: 40px;'>{serv_a}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button("➕ PT RED", use_container_width=True, key="btn_add_a"):
+                match_corrente['S1A'] += 1
+                st.session_state.service_turn = "A"
+                st.rerun()
+            if st.button("➖ PT RED", use_container_width=True, key="btn_sub_a"):
+                match_corrente['S1A'] = max(0, match_corrente['S1A'] - 1)
+                st.rerun()
+
+        with col_mid:
+            st.markdown("<h1 style='text-align: center; margin-top: 50px;'>VS</h1>", unsafe_allow_html=True)
+            if st.button("🔃", help="Cambio Palla", use_container_width=True):
+                st.session_state.service_turn = "B" if st.session_state.service_turn == "A" else "A"
+                st.rerun()
+
+        with col2:
+            serv_b = "<span class='ball-icon-live'>🏐</span>" if st.session_state.service_turn == 'B' else ""
+            st.markdown(f"""
+                <div class='team-blue-bg'>
+                    <h3>{match_corrente['B']['name']}</h3>
+                    <div class='score-val-big'>{match_corrente['S1B']}</div>
+                    <div style='height: 40px;'>{serv_b}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button("➕ PT BLUE", use_container_width=True, key="btn_add_b"):
+                match_corrente['S1B'] += 1
+                st.session_state.service_turn = "B"
+                st.rerun()
+            if st.button("➖ PT BLUE", use_container_width=True, key="btn_sub_b"):
+                match_corrente['S1B'] = max(0, match_corrente['S1B'] - 1)
+                st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+            
+        # Pulsante di Sincronizzazione / Chiusura Match
+        if st.button("🚀 COMUNICA RISULTATO AL TABELLONE", type="primary", use_container_width=True):
+            match_corrente['Fatto'] = True
+            database.aggiorna_carriera(match_corrente['A'], match_corrente['S1A'], match_corrente['S1B'], match_corrente['S1A'] > match_corrente['S1B'], 1 if match_corrente['S1A']>match_corrente['S1B'] else 0, 1 if match_corrente['S1B']>match_corrente['S1A'] else 0)
+            database.aggiorna_carriera(match_corrente['B'], match_corrente['S1B'], match_corrente['S1A'], match_corrente['S1B'] > match_corrente['S1A'], 1 if match_corrente['S1B']>match_corrente['S1A'] else 0, 1 if match_corrente['S1A']>match_corrente['S1B'] else 0)
+            st.session_state.start_time = None
+            st.success("Risultato inviato con successo!")
+            st.rerun()
 
     st.divider()
     
