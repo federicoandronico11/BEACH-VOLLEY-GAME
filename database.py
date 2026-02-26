@@ -2,22 +2,22 @@ import streamlit as st
 
 def init_session():
     keys = {
-        'db_atleti': [], 'ranking_atleti': {}, 'atleti_stats': {},
-        'teams': [], 'matches': [], 'playoffs': [], 'albo_oro': [],
-        'phase': "Setup", 'menu_attivo': "HUB",
+        'db_atleti': [], 
+        'ranking_atleti': {}, 
+        'atleti_stats': {},
+        'teams': [], 
+        'matches': [], 
+        'playoffs': [], 
+        'albo_oro': [],
+        'phase': "Setup", 
+        'menu_attivo': "HUB",
         'settings': {"punti_set": 21, "match_type": "Set Unico", "formato": "Gironi + Eliminazione"}
     }
     for key, val in keys.items():
         if key not in st.session_state: st.session_state[key] = val
 
 def aggiorna_carriera(team, pf, ps, win, sv, sp):
-    """
-    pf: punti fatti nel match
-    ps: punti subiti nel match
-    win: True/False (vittoria match)
-    sv: set vinti nel match
-    sp: set persi nel match
-    """
+    """Aggiorna i dati analitici di ogni atleta del team dopo un match"""
     for atleta in [team['p1'], team['p2']]:
         if atleta not in st.session_state.atleti_stats:
             st.session_state.atleti_stats[atleta] = {
@@ -30,6 +30,7 @@ def aggiorna_carriera(team, pf, ps, win, sv, sp):
         s['ps'] += ps
         s['sv'] += sv
         s['sp'] += sp
+        
         if win: 
             s['v'] += 1
             st.session_state.ranking_atleti[atleta] = st.session_state.ranking_atleti.get(atleta, 0) + 10
