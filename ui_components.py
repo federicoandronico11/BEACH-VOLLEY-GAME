@@ -20,7 +20,7 @@ def apply_pro_theme():
     }
     
     /* Expander della Carriera (Sidebar) */
-    .st-emotion-cache-p4mowd { /* Classe specifica per l'expander */
+    .st-emotion-cache-p4mowd { 
         background: rgba(255, 255, 255, 0.03) !important;
         border: 1px solid rgba(0, 255, 133, 0.2) !important;
         border-radius: 4px !important;
@@ -69,7 +69,7 @@ def apply_pro_theme():
     .fc-tile {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0px; /* Taglio netto FC Style */
+        border-radius: 0px; 
         padding: 40px;
         text-align: center;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -89,6 +89,41 @@ def apply_pro_theme():
         font-size: 2rem;
         letter-spacing: 2px;
         color: #00ff85;
+    }
+
+    /* --- LIVE SCOREBOARD CONTROLS --- */
+    .btn-score {
+        height: 80px !important;
+        font-size: 2rem !important;
+        border: 2px solid #333 !important;
+        background: #1a1a1a !important;
+        color: white !important;
+    }
+    
+    .btn-score:active {
+        transform: scale(0.95);
+        border-color: #00ff85 !important;
+    }
+
+    .service-indicator {
+        width: 15px;
+        height: 15px;
+        background: #00ff85;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 10px #00ff85;
+        margin-right: 10px;
+    }
+
+    .timer-display {
+        font-family: 'monospace';
+        font-size: 1.5rem;
+        color: #ffd700;
+        text-align: center;
+        padding: 10px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 5px;
+        border: 1px solid #444;
     }
 
     /* --- CELEBRAZIONE VINCITORE --- */
@@ -114,7 +149,7 @@ def apply_pro_theme():
         font-size: 1.8rem !important;
     }
     
-    /* Bottoni */
+    /* Bottoni Standard */
     .stButton>button {
         background: #00ff85 !important;
         color: black !important;
@@ -167,33 +202,15 @@ def apply_pro_theme():
     .third { height: 170px; border-top: 6px solid #cd7f32; order: 3; }
 
     .podium-rank {
-        font-family: 'Oswald';
-        font-size: 3.5rem;
-        font-weight: 900;
-        line-height: 1;
-        margin-bottom: 10px;
-        background: -webkit-linear-gradient(#eee, #333);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-family: 'Oswald'; font-size: 3.5rem; font-weight: 900; line-height: 1; margin-bottom: 10px;
+        background: -webkit-linear-gradient(#eee, #333); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 
-    .podium-name {
-        font-size: 1.1rem;
-        text-align: center;
-        font-weight: bold;
-        text-transform: uppercase;
-        color: white;
-    }
+    .podium-name { font-size: 1.1rem; text-align: center; font-weight: bold; text-transform: uppercase; color: white; }
 
     .career-card {
-        background: rgba(255, 255, 255, 0.03);
-        border-left: 4px solid #00ff85;
-        padding: 15px;
-        margin-bottom: 8px;
-        border-radius: 0 4px 4px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        background: rgba(255, 255, 255, 0.03); border-left: 4px solid #00ff85; padding: 15px; margin-bottom: 8px;
+        border-radius: 0 4px 4px 0; display: flex; justify-content: space-between; align-items: center;
     }
     </style>
     """, unsafe_allow_html=True)
