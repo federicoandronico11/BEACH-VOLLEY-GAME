@@ -184,7 +184,7 @@ if c3.button("CONFERMA", key=f"btn{i}"):
         database.aggiorna_carriera(m['B'], m['S1B'], m['S1A'], m['S1B'] > m['S1A'], 1 if m['S1B']>m['S1A'] else 0, 1 if m['S1A']>m['S1B'] else 0)
     st.rerun()
         
-        if all(m['Fatto'] for m in st.session_state.matches) and st.button("🏆 PASSA AI PLAYOFF"):
+    if all(m['Fatto'] for m in st.session_state.matches) and st.button("🏆 PASSA AI PLAYOFF"):
             cl = sorted(st.session_state.teams, key=lambda t: sum(1 for m in st.session_state.matches if (m['A']['name']==t['name'] and m['S1A']>m['S1B'])), reverse=True)
             st.session_state.playoffs = [{"A": cl[0], "B": cl[3] if len(cl)>3 else cl[-1], "S1A":0, "S1B":0, "Fatto":False, "N":"Semi 1"},
                                         {"A": cl[1], "B": cl[2] if len(cl)>2 else cl[-1], "S1A":0, "S1B":0, "Fatto":False, "N":"Semi 2"}]
