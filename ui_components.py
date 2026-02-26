@@ -131,5 +131,69 @@ def apply_pro_theme():
         background: white !important;
         transform: translateY(-2px);
     }
+
+    /* --- AGGIUNTE PER PODIO E CARRIERA --- */
+    .podium-container {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 15px;
+        margin: 40px 0;
+        height: 300px;
+    }
+
+    .podium-step {
+        background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+        border: 1px solid #333;
+        border-radius: 10px 10px 5px 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 20px;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        width: 160px;
+        position: relative;
+    }
+
+    .podium-step:hover {
+        border-color: #00ff85;
+        transform: scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 255, 133, 0.2);
+    }
+
+    .first { height: 260px; border-top: 6px solid #ffd700; order: 2; z-index: 2; }
+    .second { height: 210px; border-top: 6px solid #c0c0c0; order: 1; }
+    .third { height: 170px; border-top: 6px solid #cd7f32; order: 3; }
+
+    .podium-rank {
+        font-family: 'Oswald';
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 10px;
+        background: -webkit-linear-gradient(#eee, #333);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .podium-name {
+        font-size: 1.1rem;
+        text-align: center;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    .career-card {
+        background: rgba(255, 255, 255, 0.03);
+        border-left: 4px solid #00ff85;
+        padding: 15px;
+        margin-bottom: 8px;
+        border-radius: 0 4px 4px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
     </style>
     """, unsafe_allow_html=True)
